@@ -1,15 +1,15 @@
 apply plugin: 'com.android.application'
 
 android {
-    compileSdkVersion 23
-    buildToolsVersion "23.0.2"
+    compileSdkVersion Integer.parseInt(project.ANDROID_BUILD_SDK_VERSION)
+    buildToolsVersion project.ANDROID_BUILD_TOOLS_VERSION
 
     defaultConfig {
-        applicationId "com.lawyer.customerloyaltysms"
-        minSdkVersion 17
-        targetSdkVersion 23
-        versionCode 1
-        versionName "1.0"
+        applicationId "com.costumers.lawyer"
+        minSdkVersion Integer.parseInt(project.ANDROID_BUILD_MIN_SDK_VERSION)
+        targetSdkVersion Integer.parseInt(project.ANDROID_BUILD_TARGET_SDK_VERSION)
+        versionName project.VERSION_NAME
+        versionCode Integer.parseInt(project.VERSION_CODE)
     }
     buildTypes {
         release {
@@ -22,5 +22,13 @@ android {
 dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
     testCompile 'junit:junit:4.12'
+    /*elements material design*/
     compile 'com.android.support:appcompat-v7:23.3.0'
+    compile 'com.android.support:design:23.2.1'
+    compile 'com.android.support:support-v4:23.2.1'
+    compile 'com.android.support:recyclerview-v7:23.2.1'
+    /*services*/
+    compile 'com.google.code.gson:gson:2.2.4'
+    compile 'com.squareup.retrofit:retrofit:1.9.0'
+
 }
