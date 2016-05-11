@@ -1,7 +1,14 @@
 package com.lawyer.customerloyaltysms.data;
 
+import android.content.ContentValues;
 import android.content.Context;
+import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+
+import com.lawyer.customerloyaltysms.entities.Customer_entity;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created by stiven on 5/9/2016.
@@ -48,5 +55,56 @@ public class DataBaseManager {
         cn.getWritableDatabase();
     }
 
+    public List<Customer_entity> getCustomerSMS(String filter) {
+        List<Customer_entity> CustomerList = new ArrayList<Customer_entity>();
+        String selectQuery = "SELECT * FROM " + TABLE_NAME_SENDSMS; //  +" "+ filter; //+ " LIMIT 5; ";
+        Cursor cursor =db.rawQuery(selectQuery, null);
+        // looping through all rows and adding to list
+        if (cursor.moveToFirst()) {
+            do {
+                Customer_entity customer = new Customer_entity();
+                customer.Cell1=(cursor.getString(cursor.getColumnIndex(CN_Cell1)));
+                customer.Cell2=(cursor.getString(cursor.getColumnIndex(CN_Cell2)));
+                customer.Cell3=(cursor.getString(cursor.getColumnIndex(CN_Cell3)));
+                customer.Document=(cursor.getString(cursor.getColumnIndex(CN_Document)));
+                customer.IdPerson=(cursor.getString(cursor.getColumnIndex(CN_IdPerson)));
+                customer.LastName=(cursor.getString(cursor.getColumnIndex(CN_LastName)));
+                customer.Name=(cursor.getString(cursor.getColumnIndex(CN_Name)));
+                customer.Sent=(cursor.getString(cursor.getColumnIndex(CN_sent)));
+                // Adding customer to list
+                CustomerList.add(customer);
+            } while (cursor.moveToNext());
+
+            if (cursor != null && !cursor.isClosed()) {
+                cursor.close();
+            }
+        }
+        // return contact list
+        return CustomerList;
+    }
+
+    public  void InsertCostumers(List<Customer_entity> lstcustomers)
+    {
+        long v=0;
+        for (Customer_entity customer:lstcustomers) {
+            v= db.insert(TABLE_NAME_SENDSMS, null, ContentValuesCustomer(customer));
+            long g=v;
+        }
+    }
+
+
+    public ContentValues ContentValuesCustomer(Customer_entity customer)
+    {
+        ContentValues values=new ContentValues();
+        values.put(CN_IdPerson ,customer.IdPerson);
+        values.put(CN_Name,customer.Name);
+        values.put(CN_LastName,customer.LastName);
+        values.put(CN_Document,customer.Document);
+        values.put(CN_Cell1,customer.Cell1);
+        values.put(CN_Cell2 ,customer.Cell2);
+        values.put(CN_Cell3,customer.Cell3);
+        values.put(CN_sent,customer.Sent);
+        return values;
+    }
 
 }

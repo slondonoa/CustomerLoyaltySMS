@@ -17,7 +17,7 @@ public class Connection extends SQLiteOpenHelper{
 
     @Override
     public void onCreate(SQLiteDatabase db) {
-        db.execSQL(DataBaseManager.TABLE_NAME_SENDSMS);
+        db.execSQL(DataBaseManager.CREATE_TABLE_SENDSMS);
         long i=0;
     }
 
