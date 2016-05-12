@@ -1,11 +1,16 @@
 package com.lawyer.customerloyaltysms;
 
+
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
+import android.content.ContentProviderOperation;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import android.provider.AlarmClock;
+import android.provider.ContactsContract;
 import android.support.design.widget.TabLayout;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
@@ -14,8 +19,12 @@ import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
+import android.text.TextUtils;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.widget.Toast;
 
+import com.lawyer.customerloyaltysms.activity.filter;
 import com.lawyer.customerloyaltysms.data.DataBaseManager;
 import com.lawyer.customerloyaltysms.entities.Customer_entity;
 import com.lawyer.customerloyaltysms.fragments.Customers;
@@ -175,5 +184,33 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        // Inflate the menu; this adds items to the action bar if it is present.
+        getMenuInflater().inflate(R.menu.menu_main, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        // Handle action bar item clicks here. The action bar will
+        // automatically handle clicks on the Home/Up button, so long
+        // as you specify a parent activity in AndroidManifest.xml.
+        int id = item.getItemId();
+        if(id == R.id.action_refresh){
+            //se debe validar que no tenga procesos de envio activos para poder actullizar
+            refreshCostumers();
+        }
+        if(id == R.id.action_filter){
+            Intent intent = new Intent(this, filter.class);
+            startActivity(intent);
+        }
+        if(id == R.id.action_reload){
+            finish();
+            startActivity(getIntent());
+        }
+        return super.onOptionsItemSelected(item);
+    }
 
 }

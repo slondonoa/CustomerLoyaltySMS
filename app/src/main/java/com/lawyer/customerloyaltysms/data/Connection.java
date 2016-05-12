@@ -9,7 +9,7 @@ import android.database.sqlite.SQLiteOpenHelper;
  */
 public class Connection extends SQLiteOpenHelper{
     private  static final String DB_NAME="ClientsLoyaltySMS.sqlite";
-    private static final  int DB_CHEMA_VERSION=1;
+    private static final  int DB_CHEMA_VERSION=2;
 
     public Connection(Context context) {
         super(context, DB_NAME, null, DB_CHEMA_VERSION);

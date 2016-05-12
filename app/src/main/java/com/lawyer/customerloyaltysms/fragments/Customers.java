@@ -43,10 +43,9 @@ public class Customers extends Fragment {
         return view;
     }
 
-
     @Override
-    public void onViewCreated(View view, Bundle savedInstanceState) {
-        super.onViewCreated(view, savedInstanceState);
+    public void onActivityCreated (Bundle savedInstanceState) {
+        super.onActivityCreated(savedInstanceState);
         mRecyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
 
         mCustomers = new ArrayList<>();
@@ -99,6 +98,12 @@ public class Customers extends Fragment {
         });
         */
 
+    }
+
+
+    @Override
+    public void onViewCreated(View view, Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
 
     }
 

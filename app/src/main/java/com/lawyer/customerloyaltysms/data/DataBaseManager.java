@@ -24,6 +24,7 @@ public class DataBaseManager {
     public static String CN_Cell3 = "Cell3";
     public static String CN_sent = "Sent";
     public static String CN_ID = "Id";
+    public static String CN_filtered = "Filtered";
 
     public static final String CREATE_TABLE_SENDSMS = "CREATE TABLE IF NOT EXISTS " + TABLE_NAME_SENDSMS + "(" +
             CN_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
@@ -34,7 +35,8 @@ public class DataBaseManager {
             CN_Cell1 + " TEXT, " +
             CN_Cell2 + " TEXT, " +
             CN_Cell3 + " TEXT, " +
-            CN_sent + " INTEGER);";
+            CN_sent + " INTEGER, " +
+            CN_filtered + " INTEGER);";
 
     private Connection cn;
     private SQLiteDatabase db;
@@ -54,6 +56,9 @@ public class DataBaseManager {
         cn=new Connection(context);
         cn.getWritableDatabase();
     }
+
+    //sedebe actualizar con la configuracion de filtros
+    //db.execSQL("UPDATE Usuarios SET nombre='usunuevo' WHERE codigo=6 ");
 
     public List<Customer_entity> getCustomerSMS(String filter) {
         List<Customer_entity> CustomerList = new ArrayList<Customer_entity>();
@@ -86,6 +91,7 @@ public class DataBaseManager {
     public  void InsertCostumers(List<Customer_entity> lstcustomers)
     {
         long v=0;
+        db.delete(TABLE_NAME_SENDSMS, null, null);
         for (Customer_entity customer:lstcustomers) {
             v= db.insert(TABLE_NAME_SENDSMS, null, ContentValuesCustomer(customer));
             long g=v;
@@ -104,6 +110,7 @@ public class DataBaseManager {
         values.put(CN_Cell2 ,customer.Cell2);
         values.put(CN_Cell3,customer.Cell3);
         values.put(CN_sent,customer.Sent);
+        values.put(CN_filtered, customer.Filtered);
         return values;
     }
 

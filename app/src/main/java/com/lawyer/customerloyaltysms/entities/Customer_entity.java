@@ -12,4 +12,5 @@ public class Customer_entity {
     public String Cell2;
     public String Cell3;
     public String Sent;
+    public String Filtered;
 }

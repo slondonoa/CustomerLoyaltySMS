@@ -3,4 +3,59 @@
 
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="refresh">Refrescar</string>
+    <string name="filter">Filtros</string>
+    <string name="woman">Mejuer</string>
+    <string name="men">Hombre</string>
+    <string name="generate">Generar</string>
+    <string name="action_refresh">Refrescar</string>
+
+    <string-array name="costumerstatus_array">
+        <item>Estado del cliente</item>
+        <item>Contratado</item>
+        <item>Posible cliente</item>
+        <item>Pendientes por contactar</item>
+        <item>Pendiente por documentacion</item>
+        <item>Solo consulta</item>
+    </string-array>
+    <string-array name="processstatus_array">
+        <item>Estado del proceso</item>
+        <item>En cuenta de cobro</item>
+        <item>En demanda</item>
+        <item>En ejecutivo</item>
+        <item>En tramite</item>
+        <item>En tutela</item>
+        <item>Otra oficina</item>
+        <item>Pago verificado</item>
+        <item>Pendiente por demanda</item>
+        <item>Pendiente por ejecutivo</item>
+        <item>Pendiente por pago</item>
+        <item>Pendiente por tramite</item>
+        <item>Pendiente por tutela</item>
+        <item>Prioritario</item>
+        <item>Terminado</item>
+    </string-array>
+    <string-array name="processed_array">
+        <item>Tramite</item>
+        <item>Auxilio funerario</item>
+        <item>Calificación de invalidez</item>
+        <item>Devolucion de aportes fondos privados</item>
+        <item>Divorcios</item>
+        <item>Incrementos</item>
+        <item>Indemnizacion sustitutiva</item>
+        <item>Ineficacia de traslado</item>
+        <item>Intereses moratorios</item>
+        <item>Nombramiento de curador</item>
+        <item>Pago a herederos</item>
+        <item>Pensión de invalidez</item>
+        <item>Pensión de sobrevivientes</item>
+        <item>Pension vejez</item>
+        <item>Reliquidacion</item>
+        <item>Retroactivo pension invalidez</item>
+        <item>Retroactivo pension sobrevivientes</item>
+        <item>Retroactivo pension vejez</item>
+        <item>Seguros</item>
+        <item>Sucesiones</item>
+        <item>Transito</item>
+    </string-array>
 </resources>
