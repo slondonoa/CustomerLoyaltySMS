@@ -50,7 +50,7 @@ public class Customers extends Fragment {
 
         mCustomers = new ArrayList<>();
         manager = new DataBaseManager(getActivity());
-        List<Customer_entity> lstcustomers = manager.getCustomerSMS("");
+        List<Customer_entity> lstcustomers = manager.getCustomerSMS();
         manager.Close(getActivity());
 
         for(Customer_entity customer:lstcustomers) {

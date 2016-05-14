@@ -27,6 +27,7 @@ import android.widget.Toast;
 import com.lawyer.customerloyaltysms.activity.filter;
 import com.lawyer.customerloyaltysms.data.DataBaseManager;
 import com.lawyer.customerloyaltysms.entities.Customer_entity;
+import com.lawyer.customerloyaltysms.entities.ProcessSMS_entity;
 import com.lawyer.customerloyaltysms.fragments.Customers;
 import com.lawyer.customerloyaltysms.services.CustomerLoyalty_service;
 import com.lawyer.customerloyaltysms.services.RestService;
@@ -56,12 +57,12 @@ public class MainActivity extends AppCompatActivity {
         restService = new RestService();
 
         manager=new DataBaseManager(this);
-        List<Customer_entity> lstperson=manager.getCustomerSMS("");
-        if (lstperson.size()<1)
+        int countAllCustomer=manager.getCountCustomer();
+        if (countAllCustomer<1)
         {
             refreshCostumers();
         }else {
-            countCostumers=lstperson.size();
+            countCostumers=manager.getCountCustomerSMS();
         }
         manager.Close(this);
 
@@ -200,7 +201,26 @@ public class MainActivity extends AppCompatActivity {
         int id = item.getItemId();
         if(id == R.id.action_refresh){
             //se debe validar que no tenga procesos de envio activos para poder actullizar
-            refreshCostumers();
+            final AlertDialog.Builder builderGeneral = new AlertDialog.Builder(this);
+            builderGeneral.setTitle("Información")
+                    .setMessage("Al usted realizar la actualización de cliente se finalizaran los procesos de envío de mensajes actualmente activos. Desea continuar con la actualización?")
+                    .setPositiveButton("Si",
+                            new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                    refresh();
+                                }
+                            })
+                    .setNegativeButton("No",
+                            new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                    finish();
+                                }
+                            });
+            builderGeneral.create();
+            builderGeneral.show();
+
         }
         if(id == R.id.action_filter){
             Intent intent = new Intent(this, filter.class);
@@ -211,6 +231,41 @@ public class MainActivity extends AppCompatActivity {
             startActivity(getIntent());
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    private void  refresh(){
+
+        manager=new DataBaseManager(this);
+        ProcessSMS_entity processSMS=manager.getProcessSMSActive();
+        manager.Close(this);
+        if (processSMS.Active!=null)
+        {
+            if(processSMS.Active==1) {
+                final AlertDialog.Builder builder = new AlertDialog.Builder(this);
+                builder.setTitle("Proceso de envío activo")
+                        .setMessage("El proceso creado en la fecha "+ processSMS.DateProcess + " del cual se han enviado" + processSMS.SentSMS + " se encuentra activo. Desea finalizar este proceso?.")
+                        .setPositiveButton("Aceptar",
+                                new DialogInterface.OnClickListener() {
+                                    @Override
+                                    public void onClick(DialogInterface dialog, int which) {
+                                        refreshCostumers();
+                                    }
+                                })
+                        .setNegativeButton("Cancelar",
+                                new DialogInterface.OnClickListener() {
+                                    @Override
+                                    public void onClick(DialogInterface dialog, int which) {
+                                        finish();
+                                    }
+                                });
+                builder.create();
+                builder.show();
+            }
+
+        }else {
+            refreshCostumers();
+        }
+
     }
 
 }
