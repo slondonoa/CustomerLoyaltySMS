@@ -5,12 +5,12 @@
     <string name="hello_blank_fragment">Hello blank fragment</string>
     <string name="refresh">Refrescar</string>
     <string name="filter">Filtros</string>
-    <string name="woman">Mejuer</string>
+    <string name="woman">Mujer</string>
     <string name="men">Hombre</string>
     <string name="generate">Generar</string>
     <string name="action_refresh">Refrescar</string>
 
-    <string-array name="costumerstatus_array">
+    <string-array name="clientstatus_array">
         <item>Estado del cliente</item>
         <item>Contratado</item>
         <item>Posible cliente</item>

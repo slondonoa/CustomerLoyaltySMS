@@ -46,9 +46,9 @@
                 <android.support.v7.widget.AppCompatSpinner
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:entries="@array/costumerstatus_array"
+                    android:entries="@array/clientstatus_array"
                     android:layout_marginTop="10dp"
-                    android:id="@+id/spcostumersatatus"
+                    android:id="@+id/spclientsatatus"
                     />
 
                 <android.support.v7.widget.AppCompatSpinner
@@ -77,8 +77,7 @@
                     <android.support.v7.widget.AppCompatRadioButton android:id="@+id/radio_womnan"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="@string/woman"
-                        android:checked="true"/>
+                        android:text="@string/woman"/>
                     <android.support.v7.widget.AppCompatRadioButton android:id="@+id/radio_men"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"

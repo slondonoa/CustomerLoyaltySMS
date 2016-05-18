@@ -223,6 +223,7 @@ public class MainActivity extends AppCompatActivity {
 
         }
         if(id == R.id.action_filter){
+            finish();
             Intent intent = new Intent(this, filter.class);
             startActivity(intent);
         }

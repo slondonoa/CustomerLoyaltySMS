@@ -9,6 +9,7 @@ import com.lawyer.customerloyaltysms.data.definitions.CustomersSMS;
 import com.lawyer.customerloyaltysms.data.definitions.FilterSMS;
 import com.lawyer.customerloyaltysms.data.definitions.ProcessSMS;
 import com.lawyer.customerloyaltysms.entities.Customer_entity;
+import com.lawyer.customerloyaltysms.entities.FilterSMS_entity;
 import com.lawyer.customerloyaltysms.entities.ProcessSMS_entity;
 
 import java.util.ArrayList;
@@ -28,6 +29,11 @@ public class DataBaseManager {
             CustomersSMS.CN_Cell1 + " TEXT, " +
             CustomersSMS.CN_Cell2 + " TEXT, " +
             CustomersSMS.CN_Cell3 + " TEXT, " +
+            CustomersSMS.CN_Sex + " TEXT, " +
+            CustomersSMS.CN_birthdate + " TEXT, " +
+            CustomersSMS.CN_processed + " TEXT, " +
+            CustomersSMS.CN_clientstatus + " TEXT, " +
+            CustomersSMS.CN_ProcessStatus + " TEXT, " +
             CustomersSMS.CN_sent + " INTEGER, " +
             CustomersSMS.CN_filtered + " INTEGER);";
 
@@ -35,14 +41,14 @@ public class DataBaseManager {
     public static final String CREATE_TABLE_PROCESSSMS = "CREATE TABLE IF NOT EXISTS " + ProcessSMS.TABLE_NAME_PROCESSSMS + "(" +
             ProcessSMS.CN_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
             ProcessSMS.CN_DateProcess + " TEXT, " +
-            ProcessSMS.CN_Filter + " TEXT, " +
+            ProcessSMS.CN_Filtered + " TEXT, " +
             ProcessSMS.CN_Message + " TEXT, " +
             ProcessSMS.CN_SentSMS + " INTEGER, " +
             ProcessSMS.CN_Active + " INTEGER);";
 
     public static final String CREATE_TABLE_FILTERSMS = "CREATE TABLE IF NOT EXISTS " + FilterSMS.TABLE_NAME_FILTERSMS + "(" +
             FilterSMS.CN_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
-            FilterSMS.CN_FilteredCustomer + " TEXT, " +
+            FilterSMS.CN_FilterCustomer + " TEXT, " +
             FilterSMS.CN_FilterDescription + " TEXT);";
 
 
@@ -105,7 +111,7 @@ public class DataBaseManager {
     }
 
 
-
+    //metodo para obtener los clientes que estan filtrados
     public List<Customer_entity> getCustomerSMS() {
         List<Customer_entity> CustomerList = new ArrayList<Customer_entity>();
         String selectQuery = "SELECT * FROM " + CustomersSMS.TABLE_NAME_CUSTOMERSSMS +" WHERE " + CustomersSMS.CN_filtered + "=1";
@@ -134,12 +140,53 @@ public class DataBaseManager {
         return CustomerList;
     }
 
+    //marcar clientes filtrados
+    public int CustomerFilteredMark(FilterSMS_entity filter) {
+        //actualizacion de tabla de clientes para poner a todos los clientes como no filtrados
+        UpdateNoFilteredCustomerSMS();
+        int count=0;
+
+        String selectQuery = "SELECT * FROM " + CustomersSMS.TABLE_NAME_CUSTOMERSSMS + " "+ filter.getFilterCustomer();
+        Cursor cursor =db.rawQuery(selectQuery, null);
+        boolean generate=false;
+        // looping through all rows and adding to list
+        if (cursor.moveToFirst()) {
+            do {
+                count++;
+                //marcar cliente como filtrado
+                int id=Integer.parseInt(cursor.getString(cursor.getColumnIndex(CustomersSMS.CN_ID)));
+                updateFilteredCustomer(id,1);
+            } while (cursor.moveToNext());
+
+            if (cursor != null && !cursor.isClosed()) {
+                cursor.close();
+            }
+            generate=true;
+        }
+        if (generate)
+        {
+            //actualiza todos los procesos de envios como inactivos
+            updateProcessSMS(0);
+
+            //borrar los filtros existenes
+            db.delete(FilterSMS.TABLE_NAME_FILTERSMS, null, null);
+
+            //guardar el nuevo filtro
+            InsertFilterSMS(filter);
+
+        }
+        // return contact list
+        return count;
+    }
+
+
+
     public  void InsertCostumers(List<Customer_entity> lstcustomers)
     {
         long v=0;
         //actualizarlos procesos activos
         db.delete(CustomersSMS.TABLE_NAME_CUSTOMERSSMS, null, null);
-        updateProcessSMS();
+        updateProcessSMS(0);
         for (Customer_entity customer:lstcustomers) {
             v= db.insert(CustomersSMS.TABLE_NAME_CUSTOMERSSMS, null, ContentValuesCustomer(customer));
             long g=v;
@@ -157,6 +204,11 @@ public class DataBaseManager {
         values.put(CustomersSMS.CN_Cell1,customer.Cell1);
         values.put(CustomersSMS.CN_Cell2 ,customer.Cell2);
         values.put(CustomersSMS.CN_Cell3,customer.Cell3);
+        values.put(CustomersSMS.CN_Sex,customer.Sex);
+        values.put(CustomersSMS.CN_birthdate,customer.birthdate);
+        values.put(CustomersSMS.CN_processed,customer.processed);
+        values.put(CustomersSMS.CN_clientstatus,customer.clientstatus);
+        values.put(CustomersSMS.CN_ProcessStatus,customer.ProcessStatus);
         values.put(CustomersSMS.CN_sent,customer.Sent);
         values.put(CustomersSMS.CN_filtered, customer.Filtered);
         return values;
@@ -167,10 +219,24 @@ public class DataBaseManager {
         ContentValues values=new ContentValues();
         values.put(ProcessSMS.CN_Active ,process.Active);
         values.put(ProcessSMS.CN_DateProcess ,process.DateProcess);
-        values.put(ProcessSMS.CN_Filter ,process.Filter);
+        values.put(ProcessSMS.CN_Filtered ,process.Filtered);
         values.put(ProcessSMS.CN_Message ,process.Message);
         values.put(ProcessSMS.CN_SentSMS ,process.SentSMS);
         return values;
+    }
+
+    public ContentValues ContentValuesFilterSMS(FilterSMS_entity filterSMS_entity)
+    {
+        ContentValues values=new ContentValues();
+        values.put(FilterSMS.CN_FilterCustomer ,filterSMS_entity.getFilterCustomer());
+        values.put(FilterSMS.CN_FilterDescription ,filterSMS_entity.getFilterDescription());
+        return values;
+    }
+
+    public  void InsertFilterSMS(FilterSMS_entity filterSMS_entity)
+    {
+        long v=0;
+        v= db.insert(FilterSMS.TABLE_NAME_FILTERSMS, null, ContentValuesFilterSMS(filterSMS_entity));
     }
 
     public  void InsertProcessSMS(ProcessSMS_entity processSMS)
@@ -188,7 +254,7 @@ public class DataBaseManager {
             do {
                 processSMS.Id= Integer.parseInt(cursor.getString(cursor.getColumnIndex(ProcessSMS.CN_ID)));
                 processSMS.DateProcess=(cursor.getString(cursor.getColumnIndex(ProcessSMS.CN_DateProcess)));
-                processSMS.Filter=(cursor.getString(cursor.getColumnIndex(ProcessSMS.CN_Filter)));
+                processSMS.Filtered=(cursor.getString(cursor.getColumnIndex(ProcessSMS.CN_Filtered)));
                 processSMS.Message=(cursor.getString(cursor.getColumnIndex(ProcessSMS.CN_Message)));
                 processSMS.SentSMS=Integer.parseInt(cursor.getString(cursor.getColumnIndex(ProcessSMS.CN_SentSMS)));
                 processSMS.Active=Integer.parseInt(cursor.getString(cursor.getColumnIndex(ProcessSMS.CN_Active)));
@@ -212,7 +278,7 @@ public class DataBaseManager {
                 ProcessSMS_entity processSMS = new ProcessSMS_entity();
                 processSMS.Id= Integer.parseInt(cursor.getString(cursor.getColumnIndex(ProcessSMS.CN_ID)));
                 processSMS.DateProcess=(cursor.getString(cursor.getColumnIndex(ProcessSMS.CN_DateProcess)));
-                processSMS.Filter=(cursor.getString(cursor.getColumnIndex(ProcessSMS.CN_Filter)));
+                processSMS.Filtered=(cursor.getString(cursor.getColumnIndex(ProcessSMS.CN_Filtered)));
                 processSMS.Message=(cursor.getString(cursor.getColumnIndex(ProcessSMS.CN_Message)));
                 processSMS.SentSMS=Integer.parseInt(cursor.getString(cursor.getColumnIndex(ProcessSMS.CN_SentSMS)));
                 processSMS.Active=Integer.parseInt(cursor.getString(cursor.getColumnIndex(ProcessSMS.CN_Active)));
@@ -228,14 +294,36 @@ public class DataBaseManager {
     }
 
 
-    public void updateProcessSMS() {
+    public void updateProcessSMS(int active) {
         ContentValues values = new ContentValues();
-        values.put(ProcessSMS.CN_Active, 0);
+        values.put(ProcessSMS.CN_Active, active);
         List<ProcessSMS_entity> lstProcessSMS=getProcessSMS();
         for (ProcessSMS_entity process:lstProcessSMS) {
             db.update(ProcessSMS.TABLE_NAME_PROCESSSMS, values, ProcessSMS.CN_ID + "= ?", new String[]{String.valueOf(process.Id)});
         }
+    }
 
+    public void updateFilteredCustomer(int customerId, int filter) {
+        ContentValues values = new ContentValues();
+        values.put(CustomersSMS.CN_filtered, filter);
+        db.update(CustomersSMS.TABLE_NAME_CUSTOMERSSMS, values, CustomersSMS.CN_ID + "= ?", new String[]{String.valueOf(customerId)});
+
+    }
+
+    public void UpdateNoFilteredCustomerSMS() {
+        String selectQuery = "SELECT * FROM " + CustomersSMS.TABLE_NAME_CUSTOMERSSMS;
+        Cursor cursor =db.rawQuery(selectQuery, null);
+        // looping through all rows and adding to list
+        if (cursor.moveToFirst()) {
+            do {
+                int id=Integer.parseInt(cursor.getString(cursor.getColumnIndex(CustomersSMS.CN_ID)));
+                updateFilteredCustomer(id,0);
+            } while (cursor.moveToNext());
+
+            if (cursor != null && !cursor.isClosed()) {
+                cursor.close();
+            }
+        }
     }
 
 }

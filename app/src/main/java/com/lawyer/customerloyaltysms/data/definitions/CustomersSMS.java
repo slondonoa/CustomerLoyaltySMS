@@ -15,4 +15,9 @@ public class CustomersSMS {
     public static final String CN_Cell3 = "Cell3";
     public static final String CN_sent = "Sent";
     public static final String CN_filtered = "Filtered";
+    public static final String CN_Sex = "Sex";
+    public static final String CN_birthdate = "birthdate";
+    public static final String CN_processed = "processed";
+    public static final String CN_clientstatus = "clientstatus";
+    public static final String CN_ProcessStatus = "ProcessStatus";
 }
