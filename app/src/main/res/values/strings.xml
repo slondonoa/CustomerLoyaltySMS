@@ -9,7 +9,12 @@
     <string name="men">Hombre</string>
     <string name="generate">Generar</string>
     <string name="action_refresh">Refrescar</string>
-
+    <string name="sending">Enviar</string>
+    <string name="message">Mensaje a enviar</string>
+    <string name="informationSending">Información de envió de mensajes</string>
+    <string name="NumbreOfCustomers">Numero de clientes</string>
+    <string name="DescriptionOfFilter">Descripción del filtro</string>
+    <string name="err_msg">Ingerse el mensaje</string>
     <string-array name="clientstatus_array">
         <item>Estado del cliente</item>
         <item>Contratado</item>

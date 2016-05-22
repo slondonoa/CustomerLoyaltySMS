@@ -120,6 +120,7 @@ public class DataBaseManager {
         if (cursor.moveToFirst()) {
             do {
                 Customer_entity customer = new Customer_entity();
+                customer.Id =Integer.parseInt(cursor.getString(cursor.getColumnIndex(CustomersSMS.CN_ID)));
                 customer.Cell1=(cursor.getString(cursor.getColumnIndex(CustomersSMS.CN_Cell1)));
                 customer.Cell2=(cursor.getString(cursor.getColumnIndex(CustomersSMS.CN_Cell2)));
                 customer.Cell3=(cursor.getString(cursor.getColumnIndex(CustomersSMS.CN_Cell3)));
@@ -144,6 +145,8 @@ public class DataBaseManager {
     public int CustomerFilteredMark(FilterSMS_entity filter) {
         //actualizacion de tabla de clientes para poner a todos los clientes como no filtrados
         UpdateNoFilteredCustomerSMS();
+        //actualiza todos los procesos de envios como inactivos
+        updateProcessSMS(0);
         int count=0;
 
         String selectQuery = "SELECT * FROM " + CustomersSMS.TABLE_NAME_CUSTOMERSSMS + " "+ filter.getFilterCustomer();
@@ -165,15 +168,10 @@ public class DataBaseManager {
         }
         if (generate)
         {
-            //actualiza todos los procesos de envios como inactivos
-            updateProcessSMS(0);
-
             //borrar los filtros existenes
             db.delete(FilterSMS.TABLE_NAME_FILTERSMS, null, null);
-
             //guardar el nuevo filtro
             InsertFilterSMS(filter);
-
         }
         // return contact list
         return count;
@@ -239,6 +237,26 @@ public class DataBaseManager {
         v= db.insert(FilterSMS.TABLE_NAME_FILTERSMS, null, ContentValuesFilterSMS(filterSMS_entity));
     }
 
+    public FilterSMS_entity getFilterSMS() {
+        FilterSMS_entity filterSMS = new FilterSMS_entity();
+        String selectQuery = "SELECT * FROM " + FilterSMS.TABLE_NAME_FILTERSMS;
+        Cursor cursor =db.rawQuery(selectQuery, null);
+        // looping through all rows and adding to list
+        if (cursor.moveToFirst()) {
+            do {
+                filterSMS.FilterCustomer=(cursor.getString(cursor.getColumnIndex(FilterSMS.CN_FilterCustomer)));
+                filterSMS.FilterDescription=(cursor.getString(cursor.getColumnIndex(FilterSMS.CN_FilterDescription)));
+            } while (cursor.moveToNext());
+
+            if (cursor != null && !cursor.isClosed()) {
+                cursor.close();
+            }
+        }
+        // return contact obj
+        return filterSMS;
+    }
+
+
     public  void InsertProcessSMS(ProcessSMS_entity processSMS)
     {
         long v=0;
@@ -254,7 +272,7 @@ public class DataBaseManager {
             do {
                 processSMS.Id= Integer.parseInt(cursor.getString(cursor.getColumnIndex(ProcessSMS.CN_ID)));
                 processSMS.DateProcess=(cursor.getString(cursor.getColumnIndex(ProcessSMS.CN_DateProcess)));
-                processSMS.Filtered=(cursor.getString(cursor.getColumnIndex(ProcessSMS.CN_Filtered)));
+                processSMS.Filtered=Integer.parseInt((cursor.getString(cursor.getColumnIndex(ProcessSMS.CN_Filtered))));
                 processSMS.Message=(cursor.getString(cursor.getColumnIndex(ProcessSMS.CN_Message)));
                 processSMS.SentSMS=Integer.parseInt(cursor.getString(cursor.getColumnIndex(ProcessSMS.CN_SentSMS)));
                 processSMS.Active=Integer.parseInt(cursor.getString(cursor.getColumnIndex(ProcessSMS.CN_Active)));
@@ -278,7 +296,7 @@ public class DataBaseManager {
                 ProcessSMS_entity processSMS = new ProcessSMS_entity();
                 processSMS.Id= Integer.parseInt(cursor.getString(cursor.getColumnIndex(ProcessSMS.CN_ID)));
                 processSMS.DateProcess=(cursor.getString(cursor.getColumnIndex(ProcessSMS.CN_DateProcess)));
-                processSMS.Filtered=(cursor.getString(cursor.getColumnIndex(ProcessSMS.CN_Filtered)));
+                processSMS.Filtered=Integer.parseInt((cursor.getString(cursor.getColumnIndex(ProcessSMS.CN_Filtered))));
                 processSMS.Message=(cursor.getString(cursor.getColumnIndex(ProcessSMS.CN_Message)));
                 processSMS.SentSMS=Integer.parseInt(cursor.getString(cursor.getColumnIndex(ProcessSMS.CN_SentSMS)));
                 processSMS.Active=Integer.parseInt(cursor.getString(cursor.getColumnIndex(ProcessSMS.CN_Active)));

@@ -88,7 +88,8 @@
                 android:id="@+id/butFilter"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_gravity="bottom"/>
+                android:layout_gravity="bottom"
+                style="@style/Widget.AppCompat.Button.Colored"/>
             </LinearLayout>
         </ScrollView>
 

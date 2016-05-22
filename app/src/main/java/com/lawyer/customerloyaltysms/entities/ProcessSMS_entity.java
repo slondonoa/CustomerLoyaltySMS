@@ -7,7 +7,7 @@ public class ProcessSMS_entity {
 
     public Integer Id;
     public String DateProcess;
-    public String Filtered;
+    public Integer Filtered;
     public String Message;
     public Integer SentSMS;
     public Integer Active;

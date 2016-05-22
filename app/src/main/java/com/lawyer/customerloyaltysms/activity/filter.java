@@ -1,6 +1,8 @@
 package com.lawyer.customerloyaltysms.activity;
 
+import android.app.AlertDialog;
 import android.app.ProgressDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Color;
 import android.support.v7.app.AppCompatActivity;
@@ -17,6 +19,7 @@ import com.lawyer.customerloyaltysms.MainActivity;
 import com.lawyer.customerloyaltysms.R;
 import com.lawyer.customerloyaltysms.data.DataBaseManager;
 import com.lawyer.customerloyaltysms.entities.FilterSMS_entity;
+import com.lawyer.customerloyaltysms.entities.ProcessSMS_entity;
 
 import java.util.Calendar;
 
@@ -40,32 +43,79 @@ public class filter extends AppCompatActivity implements View.OnClickListener {
     }
 
     public void onClick(final View v) {
-        dialog = ProgressDialog.show(this, "",
-                "Filtrando clientes. Por favor espere...", true);
+        ProcessSMS_entity processSMS=manager.getProcessSMSActive();
+        if (processSMS.Active!=null)
+        {
+            if(processSMS.Active==1) {
+                final AlertDialog.Builder builder = new AlertDialog.Builder(this);
+                builder.setTitle("Proceso de envío activo")
+                        .setMessage("El proceso creado en la fecha "+ processSMS.DateProcess + " del cual se han enviado" + processSMS.SentSMS + " se encuentra activo. Desea finalizar este proceso?.")
+                        .setPositiveButton("Si",
+                                new DialogInterface.OnClickListener() {
+                                    @Override
+                                    public void onClick(final DialogInterface dialogM, int which) {
+                                        dialog = ProgressDialog.show(filter.this, "",
+                                                "Filtrando clientes. Por favor espere...", true);
+                                        new Thread(
+                                                new Runnable() {
+                                                    @Override
+                                                    public void run() {
+                                                        filter(v);
+                                                        runOnUiThread(new Runnable() {
+                                                            @Override
+                                                            public void run() {
+                                                                if (dialog != null) {
+                                                                    dialog.cancel();
+                                                                }
+                                                                finish();
+                                                                Intent intent = new Intent(getBaseContext(), MainActivity.class);
+                                                                startActivity(intent);
+                                                                Thread.currentThread().interrupt();
+                                                                dialogM.cancel();
+                                                            }
+                                                        });
+                                                    }
+                                                }
+                                        ).start();
 
-        new Thread(
-                new Runnable() {
-                    @Override
-                    public void run() {
-                        filter(v);
-                        runOnUiThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                if (dialog != null) {
-                                    dialog.cancel();
+                                    }
+                                })
+                        .setNegativeButton("No",
+                                new DialogInterface.OnClickListener() {
+                                    @Override
+                                    public void onClick(DialogInterface dialog, int which) {
+                                        dialog.cancel();
+                                    }
+                                });
+                builder.create();
+                builder.show();
+            }
+
+        }else {
+            dialog = ProgressDialog.show(this, "",
+                    "Filtrando clientes. Por favor espere...", true);
+
+            new Thread(
+                    new Runnable() {
+                        @Override
+                        public void run() {
+                            filter(v);
+                            runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    if (dialog != null) {
+                                        dialog.cancel();
+                                    }
+                                    finish();
+                                    Intent intent = new Intent(getBaseContext(), MainActivity.class);
+                                    startActivity(intent);
+                                    Thread.currentThread().interrupt();
                                 }
-                                finish();
-                                Intent intent = new Intent(getBaseContext(), MainActivity.class);
-                                startActivity(intent);
-                                Thread.currentThread().interrupt();
-                            }
-                        });
+                            });
+                        }
                     }
-                }
-        ).start();
-
-
-
+            ).start();
+        }
 
     }
     private  void filter(View v)
@@ -96,7 +146,7 @@ public class filter extends AppCompatActivity implements View.OnClickListener {
 
         if ( spProcessstatus.getSelectedItemPosition() > 0)
         {
-            descriptionWhere= descriptionWhere + "Estado del proceso: "+ strProcessstatus;
+            descriptionWhere= descriptionWhere + " - Estado del proceso: "+ strProcessstatus;
             generate=true;
             if (and){
                 where= where + " " + " AND (ProcessStatus like '%" + strProcessstatus+"%' or ProcessStatus like '" + strProcessstatus+"%' or ProcessStatus like '%" + strProcessstatus+"' or ProcessStatus like '" + strProcessstatus+"')" ;
@@ -108,7 +158,7 @@ public class filter extends AppCompatActivity implements View.OnClickListener {
 
         if ( spCostumersatatus.getSelectedItemPosition() > 0)
         {
-            descriptionWhere= descriptionWhere + "Estado del cliente: "+ strCostumerStatus;
+            descriptionWhere= descriptionWhere + " - Estado del cliente: "+ strCostumerStatus;
             generate=true;
             if (and) {
                 where = where + " " + " AND (clientstatus like '%" + strCostumerStatus + "%' or clientstatus like '" + strCostumerStatus + "%' or clientstatus like '%" + strCostumerStatus + "' or clientstatus like '" + strCostumerStatus + "')";
@@ -119,7 +169,7 @@ public class filter extends AppCompatActivity implements View.OnClickListener {
         }
         if ( spProcessed.getSelectedItemPosition() > 0)
         {
-            descriptionWhere= descriptionWhere + "Tramite: "+ strProcessed;
+            descriptionWhere= descriptionWhere + " - Tramite: "+ strProcessed;
             generate=true;
             if (and) {
                 where = where + " " + " AND (processed like '%" + strProcessed + "%' or processed like '" + strProcessed + "%' or processed like '%" + strProcessed + "' or processed like '" + strProcessed + "')";
@@ -130,7 +180,7 @@ public class filter extends AppCompatActivity implements View.OnClickListener {
         }
         if (radio!=null) {
             if (radio.equals(getResources().getString(R.string.men))) {
-                descriptionWhere = descriptionWhere + "Sexo: " + radio;
+                descriptionWhere = descriptionWhere + " - Sexo: " + radio;
                 generate = true;
                 if (and) {
                     where = where + " " + " AND (Sex like '%" + radio + "%' or Sex like '" + radio + "%' or Sex like '%" + radio + "' or Sex like '" + radio + "')";
@@ -141,7 +191,7 @@ public class filter extends AppCompatActivity implements View.OnClickListener {
 
             } else if (radio.equals(getResources().getString(R.string.woman))) {
 
-                descriptionWhere = descriptionWhere + "Sexo: " + radio;
+                descriptionWhere = descriptionWhere + " - Sexo: " + radio;
                 generate = true;
                 if (and) {
                     where = where + " " + " AND (Sex like '%" + radio + "%' or Sex like '" + radio + "%' or Sex like '%" + radio + "' or Sex like '" + radio + "')";

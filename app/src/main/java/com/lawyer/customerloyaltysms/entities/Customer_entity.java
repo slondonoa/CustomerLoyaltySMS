@@ -4,6 +4,7 @@ package com.lawyer.customerloyaltysms.entities;
  * Created by stiven on 5/9/2016.
  */
 public class Customer_entity {
+    public int Id;
     public String IdPerson;
     public String Name;
     public String LastName;
