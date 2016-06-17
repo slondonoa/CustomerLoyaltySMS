@@ -15,6 +15,7 @@ import android.support.design.widget.TabLayout;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
+import android.support.v4.app.FragmentTransaction;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -49,6 +50,8 @@ public class MainActivity extends AppCompatActivity {
     private DataBaseManager manager;
     ProgressDialog dialog =null;
     Integer countCostumers;
+    Thread Updatethread=null;
+    int cont=0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -77,8 +80,50 @@ public class MainActivity extends AppCompatActivity {
 
         tabLayout = (TabLayout) findViewById(R.id.tabs);
         tabLayout.setupWithViewPager(viewPager);
+        if (Updatethread!=null)
+        {
+            Updatethread.interrupt();
+        }
+        UpdateList();
 
 
+    }
+
+    private void UpdateList()
+    {
+        Runnable runnable = new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    Thread.sleep(20000);
+                    while (true) {
+                        if(cont>0) {
+                            int index = viewPager.getCurrentItem();
+                            ViewPagerAdapter adapter = (ViewPagerAdapter) viewPager.getAdapter();
+                            Fragment fragment = adapter.getItem(0);
+                            final FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
+                            ft.detach(fragment);
+                            ft.attach(fragment);
+                            ft.commit();
+
+                            Fragment fragment2 = adapter.getItem(1);
+                            final FragmentTransaction ft2 = getSupportFragmentManager().beginTransaction();
+                            ft2.detach(fragment2);
+                            ft2.attach(fragment2);
+                            ft2.commit();
+                            Thread.sleep(10000);
+                        }
+                        cont++;
+                    }
+
+                } catch (Exception e) {
+                    e.getLocalizedMessage();
+                }
+            }
+        };
+
+        Updatethread = new Thread(runnable);
+        Updatethread.start();
 
     }
 
@@ -100,6 +145,7 @@ public class MainActivity extends AppCompatActivity {
                             dialog.cancel();
                         }
                         Toast.makeText(MainActivity.this, "Clientes actualizados", Toast.LENGTH_LONG).show();
+                        startActivity(getIntent());
                     }
                     @Override
                     public void failure(RetrofitError error) {
@@ -152,7 +198,7 @@ public class MainActivity extends AppCompatActivity {
             adapter.addFrag(new Customers(), "Clientes");
         }
         adapter.addFrag(new SendingSms(), "Envió de mensajes");
-        adapter.addFrag(new Fragment(), "Mensajes de cumpleaños");
+        //adapter.addFrag(new Fragment(), "Mensajes de cumpleaños");
         //app:tabMode="scrollable"
         viewPager.setAdapter(adapter);
     }
@@ -204,19 +250,22 @@ public class MainActivity extends AppCompatActivity {
             //se debe validar que no tenga procesos de envio activos para poder actullizar
             final AlertDialog.Builder builderGeneral = new AlertDialog.Builder(this);
             builderGeneral.setTitle("Información")
-                    .setMessage("Al usted realizar la actualización de cliente se finalizaran los procesos de envío de mensajes actualmente activos. Desea continuar con la actualización?")
+                    .setMessage("Al usted realizar la actualización de clientes se finalizaran los filtros y procesos de envío de mensajes actualmente activos. Desea continuar con la actualización?")
                     .setPositiveButton("Si",
                             new DialogInterface.OnClickListener() {
                                 @Override
                                 public void onClick(DialogInterface dialog, int which) {
                                     refresh();
+                                    if(Updatethread!=null){
+                                        Updatethread.interrupt();
+                                    }
                                 }
                             })
                     .setNegativeButton("No",
                             new DialogInterface.OnClickListener() {
                                 @Override
                                 public void onClick(DialogInterface dialog, int which) {
-                                    finish();
+                                    dialog.cancel();
                                 }
                             });
             builderGeneral.create();
@@ -244,7 +293,7 @@ public class MainActivity extends AppCompatActivity {
             if(processSMS.Active==1) {
                 final AlertDialog.Builder builder = new AlertDialog.Builder(this);
                 builder.setTitle("Proceso de envío activo")
-                        .setMessage("El proceso creado en la fecha "+ processSMS.DateProcess + " del cual se han enviado" + processSMS.SentSMS + " se encuentra activo. Desea finalizar este proceso?.")
+                        .setMessage("El proceso creado en la fecha "+ processSMS.DateProcess + " del cual se han enviado " + processSMS.SentSMS + " mensajes se encuentra activo. Desea finalizar este proceso?.")
                         .setPositiveButton("Aceptar",
                                 new DialogInterface.OnClickListener() {
                                     @Override
@@ -256,7 +305,7 @@ public class MainActivity extends AppCompatActivity {
                                 new DialogInterface.OnClickListener() {
                                     @Override
                                     public void onClick(DialogInterface dialog, int which) {
-                                        finish();
+                                        dialog.cancel();
                                     }
                                 });
                 builder.create();

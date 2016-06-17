@@ -9,7 +9,9 @@ import android.os.Bundle;
 import android.support.design.widget.TextInputLayout;
 import android.support.v4.app.Fragment;
 import android.telephony.PhoneStateListener;
+import android.telephony.SmsManager;
 import android.telephony.TelephonyManager;
+import android.text.Html;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -25,9 +27,11 @@ import com.lawyer.customerloyaltysms.entities.FilterSMS_entity;
 import com.lawyer.customerloyaltysms.entities.ProcessSMS_entity;
 
 import java.text.DateFormat;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
+import java.util.StringTokenizer;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -36,6 +40,7 @@ public class SendingSms extends Fragment{
     private DataBaseManager manager;
     TextView txtMessage;
     PhoneStateListener listener;
+    Thread SMSthread =null;
 
     private TextInputLayout textInputLayoutMessage;
 
@@ -61,8 +66,18 @@ public class SendingSms extends Fragment{
         manager=new DataBaseManager(getActivity());
         manager.Open(getActivity());
         int numberOfCustomers=manager.getCountCustomerSMS();
+        ProcessSMS_entity processSMS = manager.getProcessSMSActive();
+        String numberSent="0";
+        if(processSMS.SentSMS!=null) {
+            numberSent = Integer.toString(processSMS.SentSMS);
+        }
+
+
+        //<font color='red'>simple</font>
+
         String strnumberOfCustomers=Integer.toString(numberOfCustomers);
-        txtNumberOfCustomers.setText(strnumberOfCustomers);
+        txtNumberOfCustomers.setText(Html.fromHtml(strnumberOfCustomers +" / <font color='#64DD17'> "+numberSent+"</font>"));
+        //txtNumberOfCustomers.setText(strnumberOfCustomers);
         FilterSMS_entity filterSMS_entity;
         filterSMS_entity=manager.getFilterSMS();
         String descriptionFilter="";
@@ -86,12 +101,16 @@ public class SendingSms extends Fragment{
                         if (processSMS.Active == 1) {
                             final AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
                             builder.setTitle("Proceso de envío activo")
-                                    .setMessage("El proceso creado en la fecha " + processSMS.DateProcess + " del cual se han enviado" + processSMS.SentSMS + " se encuentra activo. Desea finalizar este proceso?.")
+                                    .setMessage("El proceso creado en la fecha " + processSMS.DateProcess + " del cual se han enviado " + processSMS.SentSMS + " mensajes se encuentra activo. Desea finalizar este proceso?.")
                                     .setPositiveButton("Si",
                                             new DialogInterface.OnClickListener() {
                                                 @Override
                                                 public void onClick(DialogInterface dialog, int which) {
+                                                    if(SMSthread!=null) {
+                                                        SMSthread.interrupt();
+                                                    }
                                                     manager.updateProcessSMS(0);
+                                                    manager.UpdateSentCustomerSMS(0);
                                                     SendingSMS();
                                                 }
                                             })
@@ -118,6 +137,12 @@ public class SendingSms extends Fragment{
         });
 
         manager.Close(getActivity());
+        if (SMSthread!=null)
+        {
+            SMSthread.interrupt();
+        }
+        threadSend();
+
         return view;
     }
 
@@ -153,7 +178,6 @@ public class SendingSms extends Fragment{
             }else
             {
                 //insertar el proceso
-                //
                 ProcessSMS_entity processSMS_entity=new ProcessSMS_entity();
                 processSMS_entity.Active=1;
                 processSMS_entity.Filtered=numberOfCustomers;
@@ -161,28 +185,65 @@ public class SendingSms extends Fragment{
                 processSMS_entity.DateProcess=datenow;
                 processSMS_entity.SentSMS=0;
                 manager.InsertProcessSMS(processSMS_entity);
-
-                //consulta de 1 cliente para enviar
-                //meter ciclo con un hilo cada 20 segundos para enviar el mensaje
-                Thread closeActivity = new Thread(new Runnable() {
-                    @Override
-                    public void run() {
-                        try {
-                            while (inCall())
-                            {
-                                Thread.sleep(3000);
-
-                            }
-                            // Do some stuff
-                        } catch (Exception e) {
-                            e.getLocalizedMessage();
-                        }
-                    }
-                });
+                threadSend();
 
             }
         manager.Close(getActivity());
 
+    }
+
+    public void threadSend()
+    {
+        boolean incall=inCall();
+        while (incall)
+        {
+            incall=inCall();
+
+        }
+
+        Runnable  runnable = new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    manager=new DataBaseManager(getContext());
+                    manager.Open(getContext());
+                    int FilterCustomer=manager.getCountCustomerSMS();
+                    int sent=manager.getCountCustomerSentSMS();
+                    while (FilterCustomer > sent)
+                    {
+                        //consulta de 1 cliente para enviar
+                        Customer_entity customer_entity= manager.getCustomerToSendMessage();
+                        ProcessSMS_entity processSMS_entity= manager.getProcessSMSActive();
+
+                        //enviar mensaje
+                        String strPhone = customer_entity.Cell1;
+                        String strMessage =processSMS_entity.Message;
+                        SmsManager sms = SmsManager.getDefault();
+                        ArrayList messageParts = sms.divideMessage(strMessage);
+                        sms.sendMultipartTextMessage(strPhone, null, messageParts, null, null);
+
+                        //actualizar estado de enviado del clieente
+                        manager.updateSentCustomer(customer_entity.Id,1);
+
+
+                        sent=manager.getCountCustomerSentSMS();
+                        manager.updateProcessSent(processSMS_entity.Id,sent);
+
+                        //meter ciclo con un hilo cada 20 segundos para enviar el mensaje
+                        Thread.sleep(20000);
+                    }
+                    manager.Close(getContext());
+                    //actualizar en el proceso el numero de mensajes enviados
+
+                    // Do some stuff
+                } catch (Exception e) {
+                    e.getLocalizedMessage();
+                }
+            }
+        };
+
+        SMSthread = new Thread(runnable);
+        SMSthread.start();
     }
 
     private boolean validateMessage() {

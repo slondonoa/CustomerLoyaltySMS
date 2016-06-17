@@ -73,7 +73,7 @@ public class Customer_RecyclerView_adapter extends RecyclerView.Adapter<Customer
             document.setText(model.getDocument());
             idperson.setText(model.getIdPerson());
             String sentModel=model.getSent();
-            if (sentModel=="1") {
+            if (sentModel.equals("1")) {
                 sent.setImageResource(R.mipmap.ic_done);
             }
             else {

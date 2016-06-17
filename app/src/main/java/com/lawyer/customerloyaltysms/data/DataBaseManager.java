@@ -71,9 +71,7 @@ public class DataBaseManager {
         cn.getWritableDatabase();
     }
 
-    //sedebe actualizar con la configuracion de filtros
-    //db.execSQL("UPDATE Usuarios SET nombre='usunuevo' WHERE codigo=6 ");
-
+    //metodo usado para obtener todos los clientes
     public int getCountCustomer() {
         int count=0;
         String selectQuery = "SELECT COUNT(*) as count FROM " + CustomersSMS.TABLE_NAME_CUSTOMERSSMS;
@@ -92,6 +90,7 @@ public class DataBaseManager {
         return count;
     }
 
+    //metodo usado para obtner el numero de clientes filtados
     public int getCountCustomerSMS() {
         int count=0;
         String selectQuery = "SELECT COUNT(*) as count FROM " + CustomersSMS.TABLE_NAME_CUSTOMERSSMS +" WHERE " + CustomersSMS.CN_filtered + "=1";
@@ -110,6 +109,23 @@ public class DataBaseManager {
         return count;
     }
 
+    public int getCountCustomerSentSMS() {
+        int count=0;
+        String selectQuery = "SELECT COUNT(*) as count FROM " + CustomersSMS.TABLE_NAME_CUSTOMERSSMS +" WHERE " + CustomersSMS.CN_sent + "=1";
+        Cursor cursor =db.rawQuery(selectQuery, null);
+        // looping through all rows and adding to list
+        if (cursor.moveToFirst()) {
+            do {
+                count=Integer.parseInt(cursor.getString(cursor.getColumnIndex("count")));
+            } while (cursor.moveToNext());
+
+            if (cursor != null && !cursor.isClosed()) {
+                cursor.close();
+            }
+        }
+        // return contact list
+        return count;
+    }
 
     //metodo para obtener los clientes que estan filtrados
     public List<Customer_entity> getCustomerSMS() {
@@ -140,6 +156,35 @@ public class DataBaseManager {
         // return contact list
         return CustomerList;
     }
+
+    //metodo utilizado para consultar el cliente al cual se le va a enviar un mensaje
+    public Customer_entity getCustomerToSendMessage() {
+        Customer_entity customer = null;
+        String selectQuery = "SELECT * FROM " + CustomersSMS.TABLE_NAME_CUSTOMERSSMS +" WHERE " + CustomersSMS.CN_sent + "=0 LIMIT 1;";
+        Cursor cursor =db.rawQuery(selectQuery, null);
+        // looping through all rows and adding to list
+        if (cursor.moveToFirst()) {
+            do {
+                customer = new Customer_entity();
+                customer.Id =Integer.parseInt(cursor.getString(cursor.getColumnIndex(CustomersSMS.CN_ID)));
+                customer.Cell1=(cursor.getString(cursor.getColumnIndex(CustomersSMS.CN_Cell1)));
+                customer.Cell2=(cursor.getString(cursor.getColumnIndex(CustomersSMS.CN_Cell2)));
+                customer.Cell3=(cursor.getString(cursor.getColumnIndex(CustomersSMS.CN_Cell3)));
+                customer.Document=(cursor.getString(cursor.getColumnIndex(CustomersSMS.CN_Document)));
+                customer.IdPerson=(cursor.getString(cursor.getColumnIndex(CustomersSMS.CN_IdPerson)));
+                customer.LastName=(cursor.getString(cursor.getColumnIndex(CustomersSMS.CN_LastName)));
+                customer.Name=(cursor.getString(cursor.getColumnIndex(CustomersSMS.CN_Name)));
+                customer.Sent=(cursor.getString(cursor.getColumnIndex(CustomersSMS.CN_sent)));
+            } while (cursor.moveToNext());
+
+            if (cursor != null && !cursor.isClosed()) {
+                cursor.close();
+            }
+        }
+        // return contact list
+        return customer;
+    }
+
 
     //marcar clientes filtrados
     public int CustomerFilteredMark(FilterSMS_entity filter) {
@@ -178,13 +223,14 @@ public class DataBaseManager {
     }
 
 
-
+    //metodo usado para insertar los clientes
     public  void InsertCostumers(List<Customer_entity> lstcustomers)
     {
         long v=0;
         //actualizarlos procesos activos
         db.delete(CustomersSMS.TABLE_NAME_CUSTOMERSSMS, null, null);
         updateProcessSMS(0);
+        db.delete(FilterSMS.TABLE_NAME_FILTERSMS, null, null);
         for (Customer_entity customer:lstcustomers) {
             v= db.insert(CustomersSMS.TABLE_NAME_CUSTOMERSSMS, null, ContentValuesCustomer(customer));
             long g=v;
@@ -231,12 +277,14 @@ public class DataBaseManager {
         return values;
     }
 
+    //metodo usado para ionsertar el filtro generado
     public  void InsertFilterSMS(FilterSMS_entity filterSMS_entity)
     {
         long v=0;
         v= db.insert(FilterSMS.TABLE_NAME_FILTERSMS, null, ContentValuesFilterSMS(filterSMS_entity));
     }
 
+    //metodo usado para obtener el filtro actual
     public FilterSMS_entity getFilterSMS() {
         FilterSMS_entity filterSMS = new FilterSMS_entity();
         String selectQuery = "SELECT * FROM " + FilterSMS.TABLE_NAME_FILTERSMS;
@@ -256,7 +304,7 @@ public class DataBaseManager {
         return filterSMS;
     }
 
-
+    //metodo usado para insertar el proceso de envio de sms
     public  void InsertProcessSMS(ProcessSMS_entity processSMS)
     {
         long v=0;
@@ -311,7 +359,7 @@ public class DataBaseManager {
         return lstrocessSMS;
     }
 
-
+    //metodo utilizado para actualizar los procesos de envio
     public void updateProcessSMS(int active) {
         ContentValues values = new ContentValues();
         values.put(ProcessSMS.CN_Active, active);
@@ -321,13 +369,16 @@ public class DataBaseManager {
         }
     }
 
+    //metodo para actualizar los clientes filtrados
     public void updateFilteredCustomer(int customerId, int filter) {
         ContentValues values = new ContentValues();
         values.put(CustomersSMS.CN_filtered, filter);
+        values.put(CustomersSMS.CN_sent, 0);
         db.update(CustomersSMS.TABLE_NAME_CUSTOMERSSMS, values, CustomersSMS.CN_ID + "= ?", new String[]{String.valueOf(customerId)});
 
     }
 
+    //metodo usado para poner a los clientes como no filtrados
     public void UpdateNoFilteredCustomerSMS() {
         String selectQuery = "SELECT * FROM " + CustomersSMS.TABLE_NAME_CUSTOMERSSMS;
         Cursor cursor =db.rawQuery(selectQuery, null);
@@ -343,5 +394,40 @@ public class DataBaseManager {
             }
         }
     }
+
+
+    //metodo usado para el esatdo de envio de todos los clientes
+    public void UpdateSentCustomerSMS(int sent) {
+        String selectQuery = "SELECT * FROM " + CustomersSMS.TABLE_NAME_CUSTOMERSSMS;
+        Cursor cursor =db.rawQuery(selectQuery, null);
+        // looping through all rows and adding to list
+        if (cursor.moveToFirst()) {
+            do {
+                int id=Integer.parseInt(cursor.getString(cursor.getColumnIndex(CustomersSMS.CN_ID)));
+                updateSentCustomer(id,sent);
+            } while (cursor.moveToNext());
+
+            if (cursor != null && !cursor.isClosed()) {
+                cursor.close();
+            }
+        }
+    }
+
+    //metodo para actualizar el estado de enviado de un cliente
+    public void updateSentCustomer(int customerId, int sent) {
+        ContentValues values = new ContentValues();
+        values.put(CustomersSMS.CN_sent, sent);
+        db.update(CustomersSMS.TABLE_NAME_CUSTOMERSSMS, values, CustomersSMS.CN_ID + "= ?", new String[]{String.valueOf(customerId)});
+
+    }
+
+    //metodo para actualizar en la tabla de proceso cuantos mensajes se han enviado
+    public void updateProcessSent(int idProcess, int sentSMS) {
+        ContentValues values = new ContentValues();
+        values.put(ProcessSMS.CN_SentSMS, sentSMS);
+        db.update(ProcessSMS.TABLE_NAME_PROCESSSMS, values, ProcessSMS.CN_ID + "= ?", new String[]{String.valueOf(idProcess)});
+
+    }
+
 
 }

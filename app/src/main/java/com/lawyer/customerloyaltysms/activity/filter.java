@@ -43,13 +43,16 @@ public class filter extends AppCompatActivity implements View.OnClickListener {
     }
 
     public void onClick(final View v) {
+        manager=new DataBaseManager(v.getContext());
+        manager.Open(v.getContext());
         ProcessSMS_entity processSMS=manager.getProcessSMSActive();
-        if (processSMS.Active!=null)
+        manager.Close(v.getContext());
+        if (processSMS!=null && processSMS.Active!=null)
         {
             if(processSMS.Active==1) {
                 final AlertDialog.Builder builder = new AlertDialog.Builder(this);
                 builder.setTitle("Proceso de envío activo")
-                        .setMessage("El proceso creado en la fecha "+ processSMS.DateProcess + " del cual se han enviado" + processSMS.SentSMS + " se encuentra activo. Desea finalizar este proceso?.")
+                        .setMessage("El proceso creado en la fecha "+ processSMS.DateProcess + " del cual se han enviado " + processSMS.SentSMS + " se encuentra activo. Desea finalizar este proceso?.")
                         .setPositiveButton("Si",
                                 new DialogInterface.OnClickListener() {
                                     @Override
