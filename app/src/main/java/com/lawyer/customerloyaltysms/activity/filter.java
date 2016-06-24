@@ -204,6 +204,11 @@ public class filter extends AppCompatActivity implements View.OnClickListener {
                 and = true;
             }
         }
+        if(!generate)
+        {
+            where="";
+        }
+
         manager=new DataBaseManager(v.getContext());
         manager.Open(v.getContext());
         FilterSMS_entity filterSMS_entity=new FilterSMS_entity();

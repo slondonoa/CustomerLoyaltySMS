@@ -111,7 +111,7 @@ public class DataBaseManager {
 
     public int getCountCustomerSentSMS() {
         int count=0;
-        String selectQuery = "SELECT COUNT(*) as count FROM " + CustomersSMS.TABLE_NAME_CUSTOMERSSMS +" WHERE " + CustomersSMS.CN_sent + "=1";
+        String selectQuery = "SELECT COUNT(*) as count FROM " + CustomersSMS.TABLE_NAME_CUSTOMERSSMS +" WHERE " + CustomersSMS.CN_sent + "=1 and " + CustomersSMS.CN_filtered +"=1";
         Cursor cursor =db.rawQuery(selectQuery, null);
         // looping through all rows and adding to list
         if (cursor.moveToFirst()) {
@@ -160,7 +160,7 @@ public class DataBaseManager {
     //metodo utilizado para consultar el cliente al cual se le va a enviar un mensaje
     public Customer_entity getCustomerToSendMessage() {
         Customer_entity customer = null;
-        String selectQuery = "SELECT * FROM " + CustomersSMS.TABLE_NAME_CUSTOMERSSMS +" WHERE " + CustomersSMS.CN_sent + "=0 LIMIT 1;";
+        String selectQuery = "SELECT * FROM " + CustomersSMS.TABLE_NAME_CUSTOMERSSMS +" WHERE " + CustomersSMS.CN_sent + "=0 and " + CustomersSMS.CN_filtered + "=1 LIMIT 1;";
         Cursor cursor =db.rawQuery(selectQuery, null);
         // looping through all rows and adding to list
         if (cursor.moveToFirst()) {
