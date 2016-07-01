@@ -1,21 +1,25 @@
 package com.lawyer.customerloyaltysms;
 
 
+import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.ContentProviderOperation;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.provider.AlarmClock;
 import android.provider.ContactsContract;
 import android.support.design.widget.TabLayout;
+import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.app.FragmentTransaction;
+import android.support.v4.content.ContextCompat;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -53,11 +57,17 @@ public class MainActivity extends AppCompatActivity {
     Thread Updatethread=null;
     int cont=0;
 
+    private Context context;
+    private Activity activity;
+    private static final int PERMISSION_REQUEST_CODE = 1;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        context = getApplicationContext();
+        activity = this;
         restService = new RestService();
 
         manager=new DataBaseManager(this);
@@ -85,6 +95,29 @@ public class MainActivity extends AppCompatActivity {
             Updatethread.interrupt();
         }
         UpdateList();
+
+
+        if (!checkPermissionPhoneState()) {
+
+            requestPermissionPhoneState();
+
+        } else {
+
+            Toast.makeText(MainActivity.this, "Tiene permisos para el estado del telefono", Toast.LENGTH_LONG).show();
+
+        }
+
+
+        if (!checkPermissionSMS()) {
+
+            requestPermissionSMS();
+
+        } else {
+
+            Toast.makeText(MainActivity.this, "Tiene permisos de SMS", Toast.LENGTH_LONG).show();
+
+        }
+
 
 
     }
@@ -316,6 +349,74 @@ public class MainActivity extends AppCompatActivity {
             refreshCostumers();
         }
 
+    }
+
+    private boolean checkPermissionPhoneState(){
+        int result = ContextCompat.checkSelfPermission(context, Manifest.permission.READ_PHONE_STATE);
+        if (result == PackageManager.PERMISSION_GRANTED){
+
+            return true;
+
+        } else {
+
+            return false;
+
+        }
+    }
+
+    private void requestPermissionPhoneState(){
+
+        if (ActivityCompat.shouldShowRequestPermissionRationale(activity,Manifest.permission.READ_PHONE_STATE)){
+
+            Toast.makeText(context,"Tiene permisos sobre el estado del telefono",Toast.LENGTH_LONG).show();
+
+        } else {
+
+            ActivityCompat.requestPermissions(activity,new String[]{Manifest.permission.READ_PHONE_STATE},PERMISSION_REQUEST_CODE);
+        }
+    }
+
+    private boolean checkPermissionSMS(){
+        int result = ContextCompat.checkSelfPermission(context, Manifest.permission.SEND_SMS);
+        if (result == PackageManager.PERMISSION_GRANTED){
+
+            return true;
+
+        } else {
+
+            return false;
+
+        }
+    }
+
+    private void requestPermissionSMS(){
+
+        if (ActivityCompat.shouldShowRequestPermissionRationale(activity,Manifest.permission.SEND_SMS)){
+
+            Toast.makeText(context,"Tiene permisos sobre envio de SMS",Toast.LENGTH_LONG).show();
+
+        } else {
+
+            ActivityCompat.requestPermissions(activity,new String[]{Manifest.permission.SEND_SMS},PERMISSION_REQUEST_CODE);
+        }
+    }
+
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String permissions[], int[] grantResults) {
+        switch (requestCode) {
+            case PERMISSION_REQUEST_CODE:
+                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+
+                    Toast.makeText(context,"Permisos generados",Toast.LENGTH_LONG).show();
+
+                } else {
+
+                    Toast.makeText(context,"Permisos no generados",Toast.LENGTH_LONG).show();
+
+                }
+                break;
+        }
     }
 
 }
