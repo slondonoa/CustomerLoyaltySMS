@@ -178,6 +178,7 @@ public class MainActivity extends AppCompatActivity {
                             dialog.cancel();
                         }
                         Toast.makeText(MainActivity.this, "Clientes actualizados", Toast.LENGTH_LONG).show();
+                        finish();
                         startActivity(getIntent());
                     }
                     @Override

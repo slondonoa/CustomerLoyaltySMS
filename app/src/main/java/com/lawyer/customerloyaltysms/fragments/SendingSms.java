@@ -232,6 +232,9 @@ public class SendingSms extends Fragment{
                         //meter ciclo con un hilo cada 20 segundos para enviar el mensaje
                         Thread.sleep(20000);
                     }
+                    if(SMSthread!=null) {
+                        SMSthread.interrupt();
+                    }
                     manager.Close(getContext());
                     //actualizar en el proceso el numero de mensajes enviados
 
