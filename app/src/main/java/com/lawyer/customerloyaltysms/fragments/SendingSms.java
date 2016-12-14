@@ -200,53 +200,68 @@ public class SendingSms extends Fragment{
             incall=inCall();
 
         }
+        manager=new DataBaseManager(getContext());
+        ProcessSMS_entity processSMS_active= manager.getProcessSMSActive();
+        if (processSMS_active.Active!=null)
+        {
+            if (processSMS_active.Active==1)
+            {
+                Runnable  runnable = new Runnable() {
+                    @Override
+                    public void run() {
+                        try {
+                            manager.Open(getContext());
+                            int FilterCustomer=manager.getCountCustomerSMS();
+                            int sent=manager.getCountCustomerSentSMS();
 
-        Runnable  runnable = new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    manager=new DataBaseManager(getContext());
-                    manager.Open(getContext());
-                    int FilterCustomer=manager.getCountCustomerSMS();
-                    int sent=manager.getCountCustomerSentSMS();
-                    while (FilterCustomer > sent)
-                    {
-                        //consulta de 1 cliente para enviar
-                        Customer_entity customer_entity= manager.getCustomerToSendMessage();
-                        ProcessSMS_entity processSMS_entity= manager.getProcessSMSActive();
+                            while (FilterCustomer > sent)
+                            {
+                                //consulta de 1 cliente para enviar
+                                Customer_entity customer_entity= manager.getCustomerToSendMessage();
+                                ProcessSMS_entity processSMS_entity= manager.getProcessSMSActive();
 
-                        //enviar mensaje
-                        String strPhone = customer_entity.Cell1;
-                        String strMessage =processSMS_entity.Message;
-                        SmsManager sms = SmsManager.getDefault();
-                        ArrayList messageParts = sms.divideMessage(strMessage);
-                        sms.sendMultipartTextMessage(strPhone, null, messageParts, null, null);
+                                //enviar mensaje
+                                String strPhone = customer_entity.Cell1;
+                                String strMessage =processSMS_entity.Message;
+                                SmsManager sms = SmsManager.getDefault();
+                                ArrayList messageParts = sms.divideMessage(strMessage);
+                                sms.sendMultipartTextMessage(strPhone, null, messageParts, null, null);
 
-                        //actualizar estado de enviado del clieente
-                        manager.updateSentCustomer(customer_entity.Id,1);
+                                //actualizar estado de enviado del clieente
+                                manager.updateSentCustomer(customer_entity.Id,1);
 
 
-                        sent=manager.getCountCustomerSentSMS();
-                        manager.updateProcessSent(processSMS_entity.Id,sent);
+                                sent=manager.getCountCustomerSentSMS();
+                                manager.updateProcessSent(processSMS_entity.Id,sent);
+                                TextView txtNumberOfCustomers= (TextView) getView().findViewById(R.id.txtNumberOfCustomers);
+                                int numberOfCustomers=manager.getCountCustomerSMS();
+                                String strnumberOfCustomers=Integer.toString(numberOfCustomers);
+                                txtNumberOfCustomers.setText(Html.fromHtml(strnumberOfCustomers +" / <font color='#64DD17'> "+sent+"</font>"));
 
-                        //meter ciclo con un hilo cada 20 segundos para enviar el mensaje
-                        Thread.sleep(20000);
+                                //meter ciclo con un hilo cada 20 segundos para enviar el mensaje
+                                Thread.sleep(20000);
+                            }
+                            if(SMSthread!=null) {
+                                SMSthread.interrupt();
+                            }
+                            manager.Close(getContext());
+                            //actualizar en el proceso el numero de mensajes enviados
+
+                            // Do some stuff
+                        } catch (Exception e) {
+                            e.getLocalizedMessage();
+                        }
                     }
-                    if(SMSthread!=null) {
-                        SMSthread.interrupt();
-                    }
-                    manager.Close(getContext());
-                    //actualizar en el proceso el numero de mensajes enviados
+                };
 
-                    // Do some stuff
-                } catch (Exception e) {
-                    e.getLocalizedMessage();
-                }
+                SMSthread = new Thread(runnable);
+                SMSthread.start();
+
             }
-        };
 
-        SMSthread = new Thread(runnable);
-        SMSthread.start();
+
+        }
+
     }
 
     private boolean validateMessage() {

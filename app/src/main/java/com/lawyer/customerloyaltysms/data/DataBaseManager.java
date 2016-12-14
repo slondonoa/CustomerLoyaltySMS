@@ -232,8 +232,13 @@ public class DataBaseManager {
         updateProcessSMS(0);
         db.delete(FilterSMS.TABLE_NAME_FILTERSMS, null, null);
         for (Customer_entity customer:lstcustomers) {
-            v= db.insert(CustomersSMS.TABLE_NAME_CUSTOMERSSMS, null, ContentValuesCustomer(customer));
-            long g=v;
+            if(customer.Cell1!=null && customer.Cell1!="") {
+                v = db.insert(CustomersSMS.TABLE_NAME_CUSTOMERSSMS, null, ContentValuesCustomer(customer));
+                long g = v;
+            }else {
+                int i=0;
+                i++;
+            }
         }
     }
 
