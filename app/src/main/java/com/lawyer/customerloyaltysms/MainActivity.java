@@ -139,11 +139,13 @@ public class MainActivity extends AppCompatActivity {
                             ft.attach(fragment);
                             ft.commit();
 
+                            /*
                             Fragment fragment2 = adapter.getItem(1);
                             final FragmentTransaction ft2 = getSupportFragmentManager().beginTransaction();
                             ft2.detach(fragment2);
                             ft2.attach(fragment2);
                             ft2.commit();
+                            */
                             Thread.sleep(10000);
                         }
                         cont++;

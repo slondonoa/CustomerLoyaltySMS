@@ -6,6 +6,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.design.widget.TextInputLayout;
 import android.support.v4.app.Fragment;
 import android.telephony.PhoneStateListener;
@@ -38,11 +39,13 @@ import java.util.StringTokenizer;
  */
 public class SendingSms extends Fragment{
     private DataBaseManager manager;
-    TextView txtMessage;
+    TextView txtMessage,txtNumberOfCustomers;
     PhoneStateListener listener;
     Thread SMSthread =null;
 
     private TextInputLayout textInputLayoutMessage;
+
+
 
     public static SendingSms newInstance() {
         return new SendingSms();
@@ -59,10 +62,12 @@ public class SendingSms extends Fragment{
         // Inflate the layout for this fragment
         final View view =  inflater.inflate(R.layout.fragment_sending_sms, container, false);
 
-        TextView txtNumberOfCustomers= (TextView) view.findViewById(R.id.txtNumberOfCustomers);
+        //TextView txtNumberOfCustomers= (TextView) view.findViewById(R.id.txtNumberOfCustomers);
         TextView txtDescriptionOfFilter= (TextView)  view.findViewById(R.id.txtDescriptionOfFilter);
         txtMessage= (TextView)  view.findViewById(R.id.txtMessage);
         textInputLayoutMessage=(TextInputLayout) view.findViewById(R.id.textInputLayoutMessage);
+        txtNumberOfCustomers= (TextView) view.findViewById(R.id.txtNumberOfCustomers);
+
         manager=new DataBaseManager(getActivity());
         manager.Open(getActivity());
         int numberOfCustomers=manager.getCountCustomerSMS();
@@ -70,6 +75,8 @@ public class SendingSms extends Fragment{
         String numberSent="0";
         if(processSMS.SentSMS!=null) {
             numberSent = Integer.toString(processSMS.SentSMS);
+
+            txtMessage.setText(processSMS.Message);
         }
 
 
@@ -206,6 +213,7 @@ public class SendingSms extends Fragment{
         {
             if (processSMS_active.Active==1)
             {
+                final Handler handler = new Handler();
                 Runnable  runnable = new Runnable() {
                     @Override
                     public void run() {
@@ -216,6 +224,37 @@ public class SendingSms extends Fragment{
 
                             while (FilterCustomer > sent)
                             {
+                                TelephonyManager telephony = (TelephonyManager) getContext().getSystemService(getContext().TELEPHONY_SERVICE);
+
+                                int state=telephony.getCallState();
+                                final boolean[] incall = new boolean[1];
+                                switch (state) {
+                                    case TelephonyManager.CALL_STATE_IDLE:
+                                        incall[0] = false;
+                                        break;
+                                    case TelephonyManager.CALL_STATE_OFFHOOK:
+                                        incall[0] = true;
+                                        break;
+                                    case TelephonyManager.CALL_STATE_RINGING:
+                                        incall[0] = true;
+                                        break;
+                                }
+                                while (incall[0]) {
+                                    state=telephony.getCallState();
+                                    switch (state) {
+                                        case TelephonyManager.CALL_STATE_IDLE:
+                                            incall[0] = false;
+                                            break;
+                                        case TelephonyManager.CALL_STATE_OFFHOOK:
+                                            incall[0] = true;
+                                            break;
+                                        case TelephonyManager.CALL_STATE_RINGING:
+                                            incall[0] = true;
+                                            break;
+                                    }
+                                }
+
+
                                 //consulta de 1 cliente para enviar
                                 Customer_entity customer_entity= manager.getCustomerToSendMessage();
                                 ProcessSMS_entity processSMS_entity= manager.getProcessSMSActive();
@@ -225,6 +264,7 @@ public class SendingSms extends Fragment{
                                 String strMessage =processSMS_entity.Message;
                                 SmsManager sms = SmsManager.getDefault();
                                 ArrayList messageParts = sms.divideMessage(strMessage);
+
                                 sms.sendMultipartTextMessage(strPhone, null, messageParts, null, null);
 
                                 //actualizar estado de enviado del clieente
@@ -232,11 +272,25 @@ public class SendingSms extends Fragment{
 
 
                                 sent=manager.getCountCustomerSentSMS();
+                                final int sentTmp=sent;
                                 manager.updateProcessSent(processSMS_entity.Id,sent);
-                                TextView txtNumberOfCustomers= (TextView) getView().findViewById(R.id.txtNumberOfCustomers);
+                                //TextView txtNumberOfCustomers= (TextView) getView().findViewById(R.id.txtNumberOfCustomers);
                                 int numberOfCustomers=manager.getCountCustomerSMS();
-                                String strnumberOfCustomers=Integer.toString(numberOfCustomers);
-                                txtNumberOfCustomers.setText(Html.fromHtml(strnumberOfCustomers +" / <font color='#64DD17'> "+sent+"</font>"));
+                                final String strnumberOfCustomers=Integer.toString(numberOfCustomers);
+
+                                //txtNumberOfCustomers.setText(Html.fromHtml(strnumberOfCustomers +" / <font color='#64DD17'> "+sentTmp+"</font>"));
+                                txtNumberOfCustomers.post(new Runnable() {
+                                                  public void run() {
+                                                      txtNumberOfCustomers.setText(Html.fromHtml(strnumberOfCustomers +" / <font color='#64DD17'> "+sentTmp+"</font>"));
+                                                  }
+                                              });
+
+                                /*
+                                handler.post(new Runnable(){
+                                    public void run() {
+
+                                    }});
+                                    */
 
                                 //meter ciclo con un hilo cada 20 segundos para enviar el mensaje
                                 Thread.sleep(20000);
