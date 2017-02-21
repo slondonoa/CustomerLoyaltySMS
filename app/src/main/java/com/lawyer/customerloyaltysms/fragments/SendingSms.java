@@ -255,7 +255,7 @@ public class SendingSms extends Fragment{
                                 }
 
 
-                                //consulta de 1 cliente para enviar
+                                //consulta de 1 cliente para enviar mensaje
                                 Customer_entity customer_entity= manager.getCustomerToSendMessage();
                                 ProcessSMS_entity processSMS_entity= manager.getProcessSMSActive();
 
