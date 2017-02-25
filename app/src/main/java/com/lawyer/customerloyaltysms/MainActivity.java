@@ -33,6 +33,7 @@ import com.lawyer.customerloyaltysms.activity.filter;
 import com.lawyer.customerloyaltysms.data.DataBaseManager;
 import com.lawyer.customerloyaltysms.entities.Customer_entity;
 import com.lawyer.customerloyaltysms.entities.ProcessSMS_entity;
+import com.lawyer.customerloyaltysms.fragments.Birthday;
 import com.lawyer.customerloyaltysms.fragments.Customers;
 import com.lawyer.customerloyaltysms.fragments.SendingSms;
 import com.lawyer.customerloyaltysms.services.CustomerLoyalty_service;
@@ -133,11 +134,13 @@ public class MainActivity extends AppCompatActivity {
                         if(cont>0) {
                             int index = viewPager.getCurrentItem();
                             ViewPagerAdapter adapter = (ViewPagerAdapter) viewPager.getAdapter();
+                            /*
                             Fragment fragment = adapter.getItem(0);
                             final FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
                             ft.detach(fragment);
                             ft.attach(fragment);
                             ft.commit();
+                            /*
 
                             /*
                             Fragment fragment2 = adapter.getItem(1);
@@ -234,7 +237,7 @@ public class MainActivity extends AppCompatActivity {
             adapter.addFrag(new Customers(), "Clientes");
         }
         adapter.addFrag(new SendingSms(), "Envió de mensajes");
-        //adapter.addFrag(new Fragment(), "Mensajes de cumpleaños");
+        adapter.addFrag(new Birthday(), "Cumpleaños");
         //app:tabMode="scrollable"
         viewPager.setAdapter(adapter);
     }

@@ -5,12 +5,15 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.provider.AlarmClock;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentTransaction;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.text.Html;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import com.lawyer.customerloyaltysms.MainActivity;
 import com.lawyer.customerloyaltysms.R;
 import com.lawyer.customerloyaltysms.adapters.Customer_RecyclerView_adapter;
 import com.lawyer.customerloyaltysms.adapters.Customer_adapter;
@@ -33,6 +36,7 @@ public class Customers extends Fragment {
     private List<Customer_adapter> mCustomers;
     private Customer_RecyclerView_adapter mAdapter;
     private DataBaseManager manager;
+    Thread Updatethread=null;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -46,44 +50,70 @@ public class Customers extends Fragment {
     @Override
     public void onActivityCreated (Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
-        mRecyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
 
-        mCustomers = new ArrayList<>();
-        manager = new DataBaseManager(getActivity());
-        List<Customer_entity> lstcustomers = manager.getCustomerSMS();
-        manager.Close(getActivity());
 
-        for(Customer_entity customer:lstcustomers) {
-            String allname=customer.Name + " " + customer.LastName;
 
-            if(allname.length() > 27) {
-                allname = allname.substring(0, 26) + "...";
+        Runnable runnable = new Runnable() {
+            @Override
+            public void run() {
+                try {
+
+                    while (true) {
+                        mRecyclerView.post(new Runnable() {
+                            public void run() {
+                                mRecyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
+
+                                mCustomers = new ArrayList<>();
+                                manager = new DataBaseManager(getActivity());
+                                List<Customer_entity> lstcustomers = manager.getCustomerSMS();
+                                manager.Close(getActivity());
+
+                                for(Customer_entity customer:lstcustomers) {
+                                    String allname=customer.Name + " " + customer.LastName;
+
+                                    if(allname.length() > 27) {
+                                        allname = allname.substring(0, 26) + "...";
+                                    }
+
+                                    String cells="";
+                                    if (customer.Cell1.length()>0)
+                                    {
+                                        cells=cells + customer.Cell1;
+                                    }
+                                    if (customer.Cell2.length()>0)
+                                    {
+                                        cells=cells +"-"+ customer.Cell2;
+                                    }
+                                    if (customer.Cell3.length()>0)
+                                    {
+                                        cells=cells +"-"+ customer.Cell3;
+                                    }
+
+                                    if(cells.length() > 27) {
+                                        cells = cells.substring(0, 26) + "...";
+                                    }
+
+                                    Customer_adapter pa=new Customer_adapter(customer.IdPerson,allname.toUpperCase(),cells,customer.Document,customer.Sent);
+                                    mCustomers.add(pa);
+
+                                }
+                                mAdapter = new Customer_RecyclerView_adapter(getActivity(), mCustomers);
+                                mRecyclerView.setAdapter(mAdapter);
+
+                            }
+                        });
+                        Thread.sleep(15000);
+                    }
+
+
+                } catch (Exception e) {
+                    e.getLocalizedMessage();
+                }
             }
+        };
+        Updatethread = new Thread(runnable);
+        Updatethread.start();
 
-            String cells="";
-            if (customer.Cell1.length()>0)
-            {
-                cells=cells + customer.Cell1;
-            }
-            if (customer.Cell2.length()>0)
-            {
-                cells=cells +"-"+ customer.Cell2;
-            }
-            if (customer.Cell3.length()>0)
-            {
-                cells=cells +"-"+ customer.Cell3;
-            }
-
-            if(cells.length() > 27) {
-                cells = cells.substring(0, 26) + "...";
-            }
-
-            Customer_adapter pa=new Customer_adapter(customer.IdPerson,allname.toUpperCase(),cells,customer.Document,customer.Sent);
-            mCustomers.add(pa);
-
-        }
-        mAdapter = new Customer_RecyclerView_adapter(getActivity(), mCustomers);
-        mRecyclerView.setAdapter(mAdapter);
 
         /*
         mAdapter.setOnItemClickListener(new Customer_RecyclerView_adapter.OnItemClickListener() {
@@ -99,6 +129,8 @@ public class Customers extends Fragment {
         */
 
     }
+
+
 
 
     @Override
