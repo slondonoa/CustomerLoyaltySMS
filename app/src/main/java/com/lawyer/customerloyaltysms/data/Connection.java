@@ -20,6 +20,7 @@ public class Connection extends SQLiteOpenHelper{
         db.execSQL(DataBaseManager.CREATE_TABLE_SENDSMS);
         db.execSQL(DataBaseManager.CREATE_TABLE_PROCESSSMS);
         db.execSQL(DataBaseManager.CREATE_TABLE_FILTERSMS);
+        db.execSQL(DataBaseManager.CREATE_TABLE_BIRTHDAYSMS);
     }
 
     @Override
@@ -27,6 +28,7 @@ public class Connection extends SQLiteOpenHelper{
         db.execSQL("DROP TABLE IF EXISTS " + DataBaseManager.CREATE_TABLE_SENDSMS);
         db.execSQL("DROP TABLE IF EXISTS " + DataBaseManager.CREATE_TABLE_PROCESSSMS);
         db.execSQL("DROP TABLE IF EXISTS " + DataBaseManager.CREATE_TABLE_FILTERSMS);
+        db.execSQL("DROP TABLE IF EXISTS " + DataBaseManager.CREATE_TABLE_BIRTHDAYSMS);
         onCreate(db);
     }
 

@@ -5,14 +5,18 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 
+import com.lawyer.customerloyaltysms.data.definitions.BirthdaySMS;
 import com.lawyer.customerloyaltysms.data.definitions.CustomersSMS;
 import com.lawyer.customerloyaltysms.data.definitions.FilterSMS;
 import com.lawyer.customerloyaltysms.data.definitions.ProcessSMS;
+import com.lawyer.customerloyaltysms.entities.BirthdaySMS_entity;
 import com.lawyer.customerloyaltysms.entities.Customer_entity;
 import com.lawyer.customerloyaltysms.entities.FilterSMS_entity;
 import com.lawyer.customerloyaltysms.entities.ProcessSMS_entity;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -50,6 +54,20 @@ public class DataBaseManager {
             FilterSMS.CN_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
             FilterSMS.CN_FilterCustomer + " TEXT, " +
             FilterSMS.CN_FilterDescription + " TEXT);";
+
+    //tabla para el manejo de sms de cumpleaños
+    public static final String CREATE_TABLE_BIRTHDAYSMS = "CREATE TABLE IF NOT EXISTS " + BirthdaySMS.TABLE_NAME_BIRTHDAYSMS + "(" +
+            BirthdaySMS.CN_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
+            BirthdaySMS.CN_IdPerson + " TEXT, " +
+            BirthdaySMS.CN_Name + " TEXT, " +
+            BirthdaySMS.CN_LastName + " TEXT, " +
+            BirthdaySMS.CN_Document + " TEXT, " +
+            BirthdaySMS.CN_Cell1 + " TEXT, " +
+            BirthdaySMS.CN_Cell2 + " TEXT, " +
+            BirthdaySMS.CN_Cell3 + " TEXT, " +
+            BirthdaySMS.CN_Sex + " TEXT, " +
+            BirthdaySMS.CN_birthdate + " TEXT, " +
+            BirthdaySMS.CN_sent + " INTEGER);";
 
 
     private Connection cn;
@@ -263,6 +281,7 @@ public class DataBaseManager {
         return values;
     }
 
+
     public ContentValues ContentValuesProcessSMS(ProcessSMS_entity process)
     {
         ContentValues values=new ContentValues();
@@ -432,6 +451,58 @@ public class DataBaseManager {
         values.put(ProcessSMS.CN_SentSMS, sentSMS);
         db.update(ProcessSMS.TABLE_NAME_PROCESSSMS, values, ProcessSMS.CN_ID + "= ?", new String[]{String.valueOf(idProcess)});
 
+    }
+
+    //metodos para el envio de cumpleaños
+
+    public ContentValues ContentValuesBirthdaySMS(BirthdaySMS_entity birthday)
+    {
+        ContentValues values=new ContentValues();
+        values.put(BirthdaySMS.CN_IdPerson ,birthday.IdPerson);
+        values.put(BirthdaySMS.CN_Name,birthday.Name);
+        values.put(BirthdaySMS.CN_LastName,birthday.LastName);
+        values.put(BirthdaySMS.CN_Document,birthday.Document);
+        values.put(BirthdaySMS.CN_Cell1,birthday.Cell1);
+        values.put(BirthdaySMS.CN_Cell2 ,birthday.Cell2);
+        values.put(BirthdaySMS.CN_Cell3,birthday.Cell3);
+        values.put(BirthdaySMS.CN_Sex,birthday.Sex);
+        values.put(BirthdaySMS.CN_birthdate,birthday.birthdate);
+        values.put(BirthdaySMS.CN_sent,birthday.Sent);
+        return values;
+    }
+
+    public List<BirthdaySMS_entity> getBirthdaySMS() {
+        SimpleDateFormat sdf = new SimpleDateFormat("MM/dd/yyy");
+        String currentDateandTime = sdf.format(new Date());
+
+        List<BirthdaySMS_entity> BirthdayList = new ArrayList<BirthdaySMS_entity>();
+        String selectQuery = "SELECT * FROM " + CustomersSMS.TABLE_NAME_CUSTOMERSSMS +" WHERE " + CustomersSMS.CN_birthdate + "=" +  currentDateandTime;
+        Cursor cursor =db.rawQuery(selectQuery, null);
+        // looping through all rows and adding to list
+        if (cursor.moveToFirst()) {
+            do {
+                BirthdaySMS_entity customer = new BirthdaySMS_entity();
+                customer.Id =Integer.parseInt(cursor.getString(cursor.getColumnIndex(CustomersSMS.CN_ID)));
+                customer.IdPerson=(cursor.getString(cursor.getColumnIndex(CustomersSMS.CN_IdPerson)));
+                customer.Name=(cursor.getString(cursor.getColumnIndex(CustomersSMS.CN_Name)));
+                customer.LastName=(cursor.getString(cursor.getColumnIndex(CustomersSMS.CN_LastName)));
+                customer.Document=(cursor.getString(cursor.getColumnIndex(CustomersSMS.CN_Document)));
+                customer.Cell1=(cursor.getString(cursor.getColumnIndex(CustomersSMS.CN_Cell1)));
+                customer.Cell2=(cursor.getString(cursor.getColumnIndex(CustomersSMS.CN_Cell2)));
+                customer.Cell3=(cursor.getString(cursor.getColumnIndex(CustomersSMS.CN_Cell3)));
+                customer.Sent=(cursor.getString(cursor.getColumnIndex(CustomersSMS.CN_sent)));
+                customer.Sex=(cursor.getString(cursor.getColumnIndex(CustomersSMS.CN_Sex)));
+                customer.birthdate=(cursor.getString(cursor.getColumnIndex(CustomersSMS.CN_birthdate)));
+                // Adding customer to list
+                BirthdayList.add(customer);
+            } while (cursor.moveToNext());
+
+            if (cursor != null && !cursor.isClosed()) {
+                cursor.close();
+            }
+        }
+        // return contact list
+        return BirthdayList;
     }
 
 
