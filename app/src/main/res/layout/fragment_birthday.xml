@@ -25,30 +25,7 @@
                 android:paddingTop="@dimen/activity_vertical_margin"
                 android:paddingBottom="@dimen/activity_vertical_margin"
                 android:orientation="vertical">
-                <android.support.design.widget.TextInputLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:id="@+id/textInputLayoutMessage"
-                    app:counterEnabled="true"
-                    app:counterMaxLength="160">
-                    <EditText android:id="@+id/txtMessage"
-                        android:hint="@string/message"
-                        android:inputType="textMultiLine"
-                        android:gravity="top|left"
-                        android:layout_height="wrap_content"
-                        android:layout_width="fill_parent"
-                        android:scrollbars="vertical"
-                        android:lines="5"
-                        android:maxLength="160"
-                        />
-                </android.support.design.widget.TextInputLayout>
-                <Button android:text="@string/sending"
-                    android:id="@+id/butSending"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="bottom"
-                    style="@style/Widget.AppCompat.Button.Colored"
-                    />
+
 
                 <TextView
                     android:id="@+id/txtInfo"
@@ -58,7 +35,7 @@
                     android:layout_alignParentTop="true"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="@string/informationSending"
+                    android:text="Información de envió de cumpleaños"
                     android:textAlignment="center"
                     android:layout_marginTop="16dp"
                     />
@@ -84,28 +61,6 @@
                     android:layout_height="wrap_content"
                     android:text="@string/NumbreOfCustomers"
                     android:textAlignment="center"
-                    />
-                <TextView
-                    android:id="@+id/lblDescriptionOfFilter"
-                    android:textColor="@color/black"
-                    android:textStyle="bold"
-                    android:textSize="20dp"
-                    android:layout_alignParentTop="true"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="@string/DescriptionOfFilter"
-                    android:textAlignment="center"
-                    android:layout_marginTop="16dp"
-                    />
-                <TextView
-                    android:id="@+id/txtDescriptionOfFilter"
-                    android:textColor="@color/black"
-                    android:textSize="16dp"
-                    android:layout_alignParentTop="true"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:textAlignment="center"
-                    android:layout_marginTop="16dp"
                     />
 
 

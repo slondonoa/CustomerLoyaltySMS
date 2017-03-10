@@ -14,8 +14,10 @@ import com.lawyer.customerloyaltysms.entities.Customer_entity;
 import com.lawyer.customerloyaltysms.entities.FilterSMS_entity;
 import com.lawyer.customerloyaltysms.entities.ProcessSMS_entity;
 
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
@@ -472,29 +474,59 @@ public class DataBaseManager {
     }
 
     public List<BirthdaySMS_entity> getBirthdaySMS() {
-        SimpleDateFormat sdf = new SimpleDateFormat("MM/dd/yyy");
-        String currentDateandTime = sdf.format(new Date());
+        SimpleDateFormat sdfM = new SimpleDateFormat("MM");
+        String currentDateandTimeM = sdfM.format(new Date());
+        SimpleDateFormat sdfD = new SimpleDateFormat("dd");
+        String currentDateandTimeD = sdfD.format(new Date());
 
         List<BirthdaySMS_entity> BirthdayList = new ArrayList<BirthdaySMS_entity>();
-        String selectQuery = "SELECT * FROM " + CustomersSMS.TABLE_NAME_CUSTOMERSSMS +" WHERE " + CustomersSMS.CN_birthdate + "=" +  currentDateandTime;
+        String selectQuery = "SELECT * FROM " + CustomersSMS.TABLE_NAME_CUSTOMERSSMS;
         Cursor cursor =db.rawQuery(selectQuery, null);
         // looping through all rows and adding to list
         if (cursor.moveToFirst()) {
+            db.delete(BirthdaySMS.TABLE_NAME_BIRTHDAYSMS, null, null);
             do {
+                SimpleDateFormat dateFormat = new SimpleDateFormat("MM/dd/yyyy");
+                Date BDate = new Date();
+                Date ADate = new Date();
                 BirthdaySMS_entity customer = new BirthdaySMS_entity();
-                customer.Id =Integer.parseInt(cursor.getString(cursor.getColumnIndex(CustomersSMS.CN_ID)));
-                customer.IdPerson=(cursor.getString(cursor.getColumnIndex(CustomersSMS.CN_IdPerson)));
-                customer.Name=(cursor.getString(cursor.getColumnIndex(CustomersSMS.CN_Name)));
-                customer.LastName=(cursor.getString(cursor.getColumnIndex(CustomersSMS.CN_LastName)));
-                customer.Document=(cursor.getString(cursor.getColumnIndex(CustomersSMS.CN_Document)));
-                customer.Cell1=(cursor.getString(cursor.getColumnIndex(CustomersSMS.CN_Cell1)));
-                customer.Cell2=(cursor.getString(cursor.getColumnIndex(CustomersSMS.CN_Cell2)));
-                customer.Cell3=(cursor.getString(cursor.getColumnIndex(CustomersSMS.CN_Cell3)));
-                customer.Sent=(cursor.getString(cursor.getColumnIndex(CustomersSMS.CN_sent)));
-                customer.Sex=(cursor.getString(cursor.getColumnIndex(CustomersSMS.CN_Sex)));
-                customer.birthdate=(cursor.getString(cursor.getColumnIndex(CustomersSMS.CN_birthdate)));
-                // Adding customer to list
-                BirthdayList.add(customer);
+                try {
+                    BDate = dateFormat.parse((cursor.getString(cursor.getColumnIndex(CustomersSMS.CN_birthdate))));
+                    Calendar c = Calendar.getInstance();
+                    c.setTime(BDate); // yourdate is an object of type Date
+
+                    Calendar a = Calendar.getInstance();
+                    a.setTime(ADate); // yourdate is an object of type Date
+
+                    int dc=c.get(Calendar.DAY_OF_MONTH);
+                    int mc=c.get(Calendar.MONTH) + 1;
+                    int da=a.get(Calendar.DAY_OF_MONTH);
+                    int ma=a.get(Calendar.MONTH) +1;
+
+                    if (dc==da && mc==ma)
+                    {
+                        customer.Id =Integer.parseInt(cursor.getString(cursor.getColumnIndex(CustomersSMS.CN_ID)));
+                        customer.IdPerson=(cursor.getString(cursor.getColumnIndex(CustomersSMS.CN_IdPerson)));
+                        customer.Name=(cursor.getString(cursor.getColumnIndex(CustomersSMS.CN_Name)));
+                        customer.LastName=(cursor.getString(cursor.getColumnIndex(CustomersSMS.CN_LastName)));
+                        customer.Document=(cursor.getString(cursor.getColumnIndex(CustomersSMS.CN_Document)));
+                        customer.Cell1=(cursor.getString(cursor.getColumnIndex(CustomersSMS.CN_Cell1)));
+                        customer.Cell2=(cursor.getString(cursor.getColumnIndex(CustomersSMS.CN_Cell2)));
+                        customer.Cell3=(cursor.getString(cursor.getColumnIndex(CustomersSMS.CN_Cell3)));
+                        customer.Sent=(cursor.getString(cursor.getColumnIndex(CustomersSMS.CN_sent)));
+                        customer.Sex=(cursor.getString(cursor.getColumnIndex(CustomersSMS.CN_Sex)));
+                        customer.birthdate=(cursor.getString(cursor.getColumnIndex(CustomersSMS.CN_birthdate)));
+
+                        db.insert(BirthdaySMS.TABLE_NAME_BIRTHDAYSMS, null, ContentValuesBirthdaySMS(customer));
+                        // Adding customer to list
+                        BirthdayList.add(customer);
+
+                    }
+                } catch (ParseException e) {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+                }
+
             } while (cursor.moveToNext());
 
             if (cursor != null && !cursor.isClosed()) {
@@ -504,6 +536,120 @@ public class DataBaseManager {
         // return contact list
         return BirthdayList;
     }
+
+    public int[] ValidateBirthdaySMS() {
+        int[] sent=new int[2];
+        sent[0]=0;
+        sent[1]=0;
+        int TmpTosent=0;
+        int TmpSent=0;
+        String selectQuery = "SELECT * FROM " + BirthdaySMS.TABLE_NAME_BIRTHDAYSMS;
+        Cursor cursor = db.rawQuery(selectQuery, null);
+
+        if (cursor.moveToFirst()) {
+
+            do {
+                SimpleDateFormat dateFormat = new SimpleDateFormat("MM/dd/yyyy");
+                Date BDate = new Date();
+                Date ADate = new Date();
+                BirthdaySMS_entity customer = new BirthdaySMS_entity();
+                try {
+                    BDate = dateFormat.parse((cursor.getString(cursor.getColumnIndex(BirthdaySMS.CN_birthdate))));
+                    int CustomerSent = Integer.parseInt((cursor.getString(cursor.getColumnIndex(BirthdaySMS.CN_sent))));
+                    Calendar c = Calendar.getInstance();
+                    c.setTime(BDate); // yourdate is an object of type Date
+
+                    Calendar a = Calendar.getInstance();
+                    a.setTime(ADate); // yourdate is an object of type Date
+
+                    int dc = c.get(Calendar.DAY_OF_MONTH);
+                    int mc = c.get(Calendar.MONTH) + 1;
+                    int da = a.get(Calendar.DAY_OF_MONTH);
+                    int ma = a.get(Calendar.MONTH) + 1;
+
+                    if (dc == da && mc == ma) {
+                        if(CustomerSent==0){
+                            TmpTosent++;
+                        }else if (CustomerSent==1){
+                            TmpSent++;
+                        }
+                        sent[0]=TmpSent;
+                        sent[1]=TmpTosent;
+                    }else {
+                        db.delete(BirthdaySMS.TABLE_NAME_BIRTHDAYSMS, null, null);
+                        sent[0]=0;
+                        sent[1]=0;
+                        break;
+                    }
+                } catch (ParseException e) {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+                }
+
+            } while (cursor.moveToNext());
+
+            if (cursor != null && !cursor.isClosed()) {
+                cursor.close();
+            }
+
+        }
+        return sent;
+    }
+
+
+    public BirthdaySMS_entity getBirthdayToSendMessage() {
+        BirthdaySMS_entity customer = null;
+        String selectQuery = "SELECT * FROM " + BirthdaySMS.TABLE_NAME_BIRTHDAYSMS +" WHERE " + CustomersSMS.CN_sent + "=0 LIMIT 1;";
+        Cursor cursor =db.rawQuery(selectQuery, null);
+        // looping through all rows and adding to list
+        if (cursor.moveToFirst()) {
+            do {
+                customer = new BirthdaySMS_entity();
+                customer.Id =Integer.parseInt(cursor.getString(cursor.getColumnIndex(CustomersSMS.CN_ID)));
+                customer.Cell1=(cursor.getString(cursor.getColumnIndex(CustomersSMS.CN_Cell1)));
+                customer.Cell2=(cursor.getString(cursor.getColumnIndex(CustomersSMS.CN_Cell2)));
+                customer.Cell3=(cursor.getString(cursor.getColumnIndex(CustomersSMS.CN_Cell3)));
+                customer.Document=(cursor.getString(cursor.getColumnIndex(CustomersSMS.CN_Document)));
+                customer.IdPerson=(cursor.getString(cursor.getColumnIndex(CustomersSMS.CN_IdPerson)));
+                customer.LastName=(cursor.getString(cursor.getColumnIndex(CustomersSMS.CN_LastName)));
+                customer.Name=(cursor.getString(cursor.getColumnIndex(CustomersSMS.CN_Name)));
+                customer.Sent=(cursor.getString(cursor.getColumnIndex(CustomersSMS.CN_sent)));
+            } while (cursor.moveToNext());
+
+            if (cursor != null && !cursor.isClosed()) {
+                cursor.close();
+            }
+        }
+        // return contact list
+        return customer;
+    }
+
+    public void updateSentBirthday(int customerId, int sent) {
+        ContentValues values = new ContentValues();
+        values.put(BirthdaySMS.CN_sent, sent);
+        db.update(BirthdaySMS.TABLE_NAME_BIRTHDAYSMS, values, BirthdaySMS.CN_ID + "= ?", new String[]{String.valueOf(customerId)});
+
+    }
+
+    //metodo usado para obtner el numero de clientes filtados
+    public int getCountBirthdaySMS() {
+        int count=0;
+        String selectQuery = "SELECT COUNT(*) as count FROM " + BirthdaySMS.TABLE_NAME_BIRTHDAYSMS;
+        Cursor cursor =db.rawQuery(selectQuery, null);
+        // looping through all rows and adding to list
+        if (cursor.moveToFirst()) {
+            do {
+                count=Integer.parseInt(cursor.getString(cursor.getColumnIndex("count")));
+            } while (cursor.moveToNext());
+
+            if (cursor != null && !cursor.isClosed()) {
+                cursor.close();
+            }
+        }
+        // return contact list
+        return count;
+    }
+
 
 
 }
