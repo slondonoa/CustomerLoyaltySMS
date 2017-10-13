@@ -6,7 +6,7 @@ package com.lawyer.customerloyaltysms.services;
 public class RestService {
     //You need to change the IP if you testing environment is not local machine
     //or you may have different URL than we have here
-    private static final String URL = "http://costumermanagement.azurewebsites.net/api/";
+    private static final String URL = "http://abogadospensionesapi.azurewebsites.net/api/";
     private retrofit.RestAdapter restAdapter;
     private CustomerLoyalty_service apiService;
 
